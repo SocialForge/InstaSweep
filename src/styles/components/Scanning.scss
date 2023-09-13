@@ -1,0 +1,86 @@
+.scanning {
+    .results-container {
+        @extend .grow;
+        @extend .with-app-header;
+    }
+
+    .results-container {
+        .alphabet-character {
+            border-bottom: 1px solid #222;
+            text-align: initial;
+            color: inherit;
+            @extend .m-medium;
+            @extend .p-medium;
+            @extend .fs-xlarge;
+            @extend .w-100;
+        }
+
+        .result-item {
+            color: white;
+            text-align: initial;
+            @extend .w-100;
+
+            .avatar-container {
+                position: relative;
+                &:hover {
+                    & .avatar {
+                        filter: brightness(0.25) blur(3px);
+                    }
+                    & .avatar-icon-overlay-container {
+                        display: inline-block;
+                    }
+                }
+                .avatar {
+                    width: 75px;
+                    border-radius: 50%;
+                }
+                .avatar-icon-overlay-container {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    @extend .d-none;
+                }
+            }
+
+            .verified-badge,
+            .private-indicator {
+                transform: translateY(-15px);
+            }
+
+            .verified-badge {
+                background: #49adf4;
+                border-radius: 50%;
+                padding: 0.1rem 0.2rem;
+                font-size: 0.9em;
+            }
+        }
+    }
+
+    .search-bar {
+        width: 0;
+        overflow: hidden;
+        transition: width 0.3s;
+        background: transparent;
+        border: none;
+        outline: none;
+        padding: 0 0 0.3rem 0;
+        color: white;
+        font-family: inherit;
+        border-bottom: 1px solid white;
+        @extend .fs-medium;
+
+        &.visible {
+            width: 200px;
+        }
+    }
+
+    .unfollow-action {
+        margin-bottom: $size-large;
+        border-radius: 5px;
+        @extend .p-medium;
+        @extend .fs-large;
+        @extend .bg-error;
+        @extend .clr-inherit;
+    }
+}

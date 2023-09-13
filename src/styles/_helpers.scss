@@ -1,0 +1,163 @@
+// Layout
+.main-layout {
+    width: 100%;
+    max-width: 1300px;
+    padding: 1rem;
+    margin: 0 auto;
+}
+
+.with-app-header {
+    padding-top: $header-height !important;
+}
+
+// Flex
+.flex {
+    display: flex;
+
+    &.align-center {
+        align-items: center;
+    }
+
+    &.justify-center {
+        justify-content: center;
+    }
+
+    &.column {
+        flex-direction: column;
+    }
+}
+
+.grow {
+    flex: 1;
+}
+
+// Width
+.w {
+    &-100 {
+        width: 100%;
+    }
+}
+
+// Height {
+.h {
+    &-100 {
+        height: 100%;
+    }
+}
+
+// Padding
+.p {
+    &-small {
+        padding: $size-small;
+    }
+
+    &-medium {
+        padding: $size-medium;
+    }
+
+    &-large {
+        padding: $size-large;
+    }
+
+    &-xlarge {
+        padding: $size-xlarge;
+    }
+
+    &-clear {
+        padding: 0;
+    }
+}
+
+// Margin
+.m {
+    &-small {
+        margin: $size-small;
+    }
+
+    &-medium {
+        margin: $size-medium;
+    }
+
+    &-large {
+        margin: $size-large;
+    }
+
+    &-xlarge {
+        margin: $size-xlarge;
+    }
+
+    &-clear {
+        margin: 0;
+    }
+}
+
+// font-Size
+.fs {
+    &-small {
+        font-size: $size-small;
+    }
+
+    &-medium {
+        font-size: $size-medium;
+    }
+
+    &-large {
+        font-size: $size-large;
+    }
+
+    &-xlarge {
+        font-size: $size-xlarge;
+    }
+}
+
+// Background
+.bg {
+    &-brand {
+        background: $clr-brand !important;
+    }
+
+    &-success {
+        background: $clr-success;
+    }
+
+    &-error {
+        background: $clr-error;
+    }
+}
+
+// Colors
+.clr {
+    &-inherit {
+        color: inherit;
+    }
+
+    &-error {
+        color: $clr-error;
+    }
+
+    &-success {
+        color: $clr-success;
+    }
+
+    &-cyan {
+        color: $clr-cyan;
+    }
+}
+
+// Display
+.d {
+    &-none {
+        display: none;
+    }
+
+    &-inline-block {
+        display: inline-block;
+    }
+}
+
+// Text
+.t {
+    &-center {
+        text-align: center;
+    }
+}

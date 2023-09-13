@@ -1,0 +1,18 @@
+.initial {
+    .main-action {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100vh;
+
+        &-text {
+            max-width: 50rem;
+            margin: 0 auto;
+            display: block;
+            font-size: 8rem;
+            color: white;
+            text-transform: uppercase;
+        }
+    }
+}

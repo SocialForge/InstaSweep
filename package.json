@@ -1,0 +1,34 @@
+{
+  "scripts": {
+    "webpack-build": "webpack --mode production",
+    "build": "npm run webpack-build",
+    "watch": "webpack --watch"
+  },
+  "babel": {
+    "plugins": [
+      "@babel/plugin-transform-react-jsx"
+    ]
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.22.10",
+    "@babel/core": "^7.22.11",
+    "@babel/plugin-transform-react-jsx": "^7.22.5",
+    "css-loader": "^6.8.1",
+    "eslint": "^8.48.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.5.0",
+    "@typescript-eslint/parser": "^6.5.0",
+    "sass": "^1.66.1",
+    "sass-loader": "^13.3.2",
+    "style-loader": "^3.3.3",
+    "svg-inline-loader": "^0.8.2",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "preact": "10.17.1"
+  }
+}

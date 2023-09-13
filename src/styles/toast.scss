@@ -1,0 +1,22 @@
+.is-toast {
+    position: fixed;
+    bottom: $size-medium;
+    left: $size-medium;
+    border-radius: 6px;
+    font-size: 1.25em;
+    z-index: 2;
+    @extend .p-xlarge;
+
+    &_info {
+        background: white;
+    }
+
+    &_success {
+        color: white;
+        @extend .bg-success;
+    }
+
+    &_error {
+        @extend .bg-error;
+    }
+}

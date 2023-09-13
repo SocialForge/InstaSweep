@@ -1,0 +1,40 @@
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: $header-height;
+    background: #222;
+    z-index: 1;
+    @extend .flex;
+
+    &-content {
+        justify-content: space-between;
+        @extend .main-layout;
+        @extend .flex;
+        @extend .align-center;
+    }
+
+    .logo {
+        font-size: 1.75rem;
+        letter-spacing: 2px;
+        cursor: pointer;
+        @extend .flex;
+        @extend .align-center;
+    }
+
+    .header-nav {
+        @extend .flex;
+        @extend .align-center;
+
+        > button {
+            color: white;
+            @extend .p-medium;
+
+            &:hover {
+                background: #111;
+                transition: background 0.2s;
+            }
+        }
+    }
+}

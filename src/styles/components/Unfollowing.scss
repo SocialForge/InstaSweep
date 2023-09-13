@@ -1,0 +1,7 @@
+.unfollowing {
+    .unfollow-log-container {
+        @extend .grow;
+        @extend .with-app-header;
+        @extend .p-medium;
+    }
+}

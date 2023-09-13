@@ -1,0 +1,9 @@
+.is-icon {
+    // A trick to make the wrapper and the svg the same size.
+    display: inline-flex;
+
+    svg {
+        width: 1em;
+        height: 1em;
+    }
+}

@@ -1,0 +1,98 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    background: #111 !important;
+
+    body {
+        margin: 0;
+    }
+
+    .is-app {
+        font-family: system-ui;
+        @extend .main-layout;
+
+        .overlay {
+            color: #fff;
+        }
+
+        .app-sidebar {
+            position: sticky;
+            top: 0;
+            overflow: auto;
+            padding: 0 $size-large 0 0;
+            height: 100vh;
+            min-width: 300px;
+            border-inline-end: 1px solid #333;
+            @extend .flex;
+            @extend .column;
+            @extend .fs-large;
+            @extend .with-app-header;
+        }
+
+        label {
+            cursor: pointer;
+        }
+
+        input[type='checkbox'] {
+            height: 1.1rem;
+            width: 1.1rem;
+        }
+
+        a {
+            color: inherit;
+            text-decoration-color: transparent;
+            transition: text-decoration-color 0.1s;
+            cursor: pointer;
+
+            &:hover {
+                text-decoration-color: inherit;
+            }
+        }
+
+        button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            @extend .p-clear;
+
+            &.filter-toggle {
+                text-align: initial;
+                color: white;
+                background: #222;
+                border-radius: 15px;
+                @extend .p-medium;
+                @extend .m-small;
+                @extend .fs-large;
+            }
+        }
+
+        .progressbar {
+            position: fixed;
+            top: $header-height;
+            left: 0;
+            width: 100%;
+            height: 8px;
+        }
+
+        .tabs-container {
+            @extend .flex;
+            @extend .p-large;
+
+            .tab {
+                color: gray;
+                border-radius: 8px;
+                cursor: pointer;
+                @extend .grow;
+                @extend .fs-xlarge;
+                @extend .t-center;
+                @extend .p-small;
+                &-active {
+                    color: inherit;
+                    background: #222;
+                }
+            }
+        }
+    }
+}
