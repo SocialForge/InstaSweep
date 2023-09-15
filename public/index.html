@@ -45,6 +45,22 @@
             min-height: 20rem;
         }
 
+        .hidden {
+            display: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: white;
+            color: black;
+            border-radius: 6px;
+            font-size: 1.75em;
+            padding: 2rem;
+            z-index: 2;
+        }
+
         .logo-container {
             display: flex;
             align-items: center;
@@ -108,9 +124,12 @@
             <summary>Source code</summary>
             <textarea id="code"></textarea>
         </details>
+
+        <div class="toast hidden"></div>
     </body>
     <script>
         const RAW_SCRIPT_URL = './dist.js';
+        const TOAST_TIMEOUT_MS = 3000;
 
         async function getScript() {
             const script = await fetch(RAW_SCRIPT_URL);
@@ -123,9 +142,26 @@
             document.getElementById('code').innerText = res;
         });
 
+        function sleep(ms) {
+            return new Promise(resolve => {
+                setTimeout(resolve, ms);
+            });
+        }
+
+        async function showToast(text, timeout) {
+            const toastElement = document.querySelector('.toast');
+            if (toastElement === null || !toastElement.classList.contains('hidden')) {
+                return;
+            }
+            toastElement.classList.remove('hidden');
+            toastElement.innerText = text;
+            await sleep(timeout);
+            toastElement.classList.add('hidden');
+        }
+
         async function copyToClipboard() {
             await navigator.clipboard.writeText(script);
-            alert('Code copied');
+            showToast('Code copied!', TOAST_TIMEOUT_MS);
         }
     </script>
 </html>
