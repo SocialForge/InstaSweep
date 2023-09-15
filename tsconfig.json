@@ -15,7 +15,7 @@
         "moduleResolution": "Node",
         "baseUrl": "./src",
         "target": "es5",
-        "outDir": "dist",
+        "outDir": "public",
         "lib": ["dom", "scripthost", "es2015"],
         "paths": {
             "react": ["../node_modules/preact/compat"],

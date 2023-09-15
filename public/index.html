@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <title>InstaSweep</title>
-        <link rel="icon" type="image/x-icon" href="../assets/favicon.png" />
+        <link rel="icon" type="image/x-icon" href="./favicon.png" />
     </head>
     <style>
         :root {
@@ -110,10 +110,10 @@
         </details>
     </body>
     <script>
-        const SCRIPT_PATH = '../dist/dist.js';
+        const RAW_SCRIPT_URL = './dist.js';
 
         async function getScript() {
-            const script = await fetch(SCRIPT_PATH);
+            const script = await fetch(RAW_SCRIPT_URL);
             return await script.text();
         }
 
