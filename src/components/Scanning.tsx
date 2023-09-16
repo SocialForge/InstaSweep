@@ -392,10 +392,15 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 e.preventDefault();
                 toggleSearchBar();
             }
+            if (state.searchBar.shown && e.key === 'Escape') {
+                // Close search bar on ESC.
+                e.preventDefault();
+                toggleSearchBar();
+            }
         };
         document.addEventListener('keydown', onKeyDown);
         return () => document.removeEventListener('keydown', onKeyDown);
-    }, [changePage, toggleAllUsers, toggleSearchBar, state.selectedResults]);
+    }, [changePage, toggleAllUsers, toggleSearchBar, state.selectedResults, state.searchBar.shown]);
 
     return (
         <div className='scanning'>
