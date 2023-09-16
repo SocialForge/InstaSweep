@@ -380,11 +380,11 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 e.preventDefault();
                 changePage('backwards');
             }
-            if (e.ctrlKey && e.key === 'a') {
+            if (e.ctrlKey && e.key === 'a' && !state.searchBar.shown) {
                 e.preventDefault();
                 toggleAllUsers();
             }
-            if (e.ctrlKey && e.key === 'c') {
+            if (e.ctrlKey && e.key === 'c' && !state.searchBar.shown) {
                 e.preventDefault();
                 copyListToClipboard(state.selectedResults, onListCopiedToClipboard);
             }
