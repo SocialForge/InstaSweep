@@ -392,7 +392,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 e.preventDefault();
                 toggleSearchBar();
             }
-            if (state.searchBar.shown && e.key === 'Escape') {
+            if (e.key === 'Escape' && state.searchBar.shown) {
                 // Close search bar on ESC.
                 e.preventDefault();
                 toggleSearchBar();
