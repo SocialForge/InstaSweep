@@ -356,6 +356,17 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         [state, usersForDisplay],
     );
 
+    const changeTab = (tab: Tab) => {
+        if (state.currentTab === tab) {
+            return;
+        }
+        setState({
+            ...state,
+            currentTab: tab,
+            selectedResults: [],
+        });
+    };
+
     let currentLetter = '';
     const onNewLetter = (firstLetter: string) => {
         currentLetter = firstLetter;
@@ -516,31 +527,13 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                     <nav className='tabs-container'>
                         <div
                             className={`tab ${state.currentTab === 'non_whitelisted' ? 'tab-active' : ''}`}
-                            onClick={() => {
-                                if (state.currentTab === 'non_whitelisted') {
-                                    return;
-                                }
-                                setState({
-                                    ...state,
-                                    currentTab: 'non_whitelisted',
-                                    selectedResults: [],
-                                });
-                            }}
+                            onClick={() => changeTab('non_whitelisted')}
                         >
                             Non-Whitelisted
                         </div>
                         <div
                             className={`tab ${state.currentTab === 'whitelisted' ? 'tab-active' : ''}`}
-                            onClick={() => {
-                                if (state.currentTab === 'whitelisted') {
-                                    return;
-                                }
-                                setState({
-                                    ...state,
-                                    currentTab: 'whitelisted',
-                                    selectedResults: [],
-                                });
-                            }}
+                            onClick={() => changeTab('whitelisted')}
                         >
                             Whitelisted
                         </div>
