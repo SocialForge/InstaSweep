@@ -151,7 +151,8 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         state.filter,
     );
 
-    useOnBeforeUnload(state.percentage < 100);
+    const isActiveProcess = state.percentage < 100;
+    useOnBeforeUnload(isActiveProcess);
 
     useEffect(() => {
         const scan = async () => {
@@ -252,7 +253,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
     const toggleAllUsers = useCallback(() => {
         // Avoid allowing to select all before scan completed to avoid confusion
         // regarding what exactly is selected while scanning in progress.
-        if (state.percentage < 100) {
+        if (isActiveProcess) {
             toast.info('Please wait until the scanning process is done');
             return;
         }
@@ -267,12 +268,12 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 selectedResults: [],
             });
         }
-    }, [isAllUsersSelected, state, usersForDisplay]);
+    }, [isAllUsersSelected, state, usersForDisplay, isActiveProcess]);
 
     const toggleAllUsersThatStartWithLetter = (letter: string) => {
         // Avoid allowing to select all before scan completed to avoid confusion
         // regarding what exactly is selected while scanning in progress.
-        if (state.percentage < 100) {
+        if (isActiveProcess) {
             toast.info('Please wait until the scanning process is done');
             return;
         }
@@ -404,7 +405,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
 
     return (
         <div className='scanning'>
-            <AppHeader isActiveProcess={state.percentage < 100}>
+            <AppHeader isActiveProcess={isActiveProcess}>
                 <button
                     title='Copy user list (CTRL+C)'
                     onClick={() => copyListToClipboard(state.selectedResults, onListCopiedToClipboard)}
@@ -437,7 +438,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                     {isAllUsersSelected() ? <CheckSquareIcon size={2} /> : <SquareIcon size={2} />}
                 </button>
             </AppHeader>
-            {state.percentage < 100 && <progress className='progressbar' value={state.percentage} max='100' />}
+            {isActiveProcess && <progress className='progressbar' value={state.percentage} max='100' />}
 
             <section className='flex'>
                 <aside className='app-sidebar'>

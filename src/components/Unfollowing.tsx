@@ -54,7 +54,8 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
         },
     });
 
-    useOnBeforeUnload(state.percentage < 100);
+    const isActiveProcess = state.percentage < 100;
+    useOnBeforeUnload(isActiveProcess);
 
     useEffect(() => {
         const unfollow = async () => {
@@ -138,8 +139,8 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
 
     return (
         <div className='unfollowing'>
-            <AppHeader isActiveProcess={state.percentage < 100} />
-            {state.percentage < 100 && <progress className='progressbar' value={state.percentage} max='100' />}
+            <AppHeader isActiveProcess={isActiveProcess} />
+            {isActiveProcess && <progress className='progressbar' value={state.percentage} max='100' />}
 
             <section className='flex'>
                 <aside className='app-sidebar'>
