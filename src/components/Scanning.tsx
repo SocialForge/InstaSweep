@@ -356,16 +356,19 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         [state, usersForDisplay],
     );
 
-    const changeTab = (tab: Tab) => {
-        if (state.currentTab === tab) {
-            return;
-        }
-        setState({
-            ...state,
-            currentTab: tab,
-            selectedResults: [],
-        });
-    };
+    const changeTab = useCallback(
+        (tab: Tab) => {
+            if (state.currentTab === tab) {
+                return;
+            }
+            setState({
+                ...state,
+                currentTab: tab,
+                selectedResults: [],
+            });
+        },
+        [state],
+    );
 
     let currentLetter = '';
     const onNewLetter = (firstLetter: string) => {
@@ -392,6 +395,19 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 e.preventDefault();
                 changePage('backwards');
             }
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                switch (state.currentTab) {
+                    case 'non_whitelisted':
+                        changeTab('whitelisted');
+                        break;
+                    case 'whitelisted':
+                        changeTab('non_whitelisted');
+                        break;
+                    default:
+                        assertUnreachable(state.currentTab);
+                }
+            }
             if (e.ctrlKey && e.key === 'a' && !state.searchBar.shown) {
                 e.preventDefault();
                 toggleAllUsers();
@@ -412,7 +428,15 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         };
         document.addEventListener('keydown', onKeyDown);
         return () => document.removeEventListener('keydown', onKeyDown);
-    }, [changePage, toggleAllUsers, toggleSearchBar, state.selectedResults, state.searchBar.shown]);
+    }, [
+        changePage,
+        toggleAllUsers,
+        toggleSearchBar,
+        state.selectedResults,
+        state.searchBar.shown,
+        state.currentTab,
+        changeTab,
+    ]);
 
     return (
         <div className='scanning'>
@@ -527,12 +551,14 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                     <nav className='tabs-container'>
                         <div
                             className={`tab ${state.currentTab === 'non_whitelisted' ? 'tab-active' : ''}`}
+                            title='Non-whitelisted tab (TAB)'
                             onClick={() => changeTab('non_whitelisted')}
                         >
                             Non-Whitelisted
                         </div>
                         <div
                             className={`tab ${state.currentTab === 'whitelisted' ? 'tab-active' : ''}`}
+                            title='Whitelisted tab (TAB)'
                             onClick={() => changeTab('whitelisted')}
                         >
                             Whitelisted

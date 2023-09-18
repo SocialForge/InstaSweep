@@ -53,6 +53,7 @@ Only relevant in "Scanning" screen.
 
 -   **LEFT ARROW** - previous page
 -   **RIGHT ARROW** - next page
+-   **TAB** - switch tab
 -   **CTRL+A** - select all users in list
 -   **CTRL+S** - open search bar
 -   **CTRL+C** - copy selected user list to clipboard
