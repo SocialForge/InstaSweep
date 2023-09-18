@@ -214,7 +214,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
 
     const copyListToClipboard = useCallback(async (): Promise<void> => {
         if (state.selectedResults.length === 0) {
-            toast.error('No users selected to copy');
+            toast.error('Must select at least a single user for this action');
             return;
         }
         const sortedResults = [...state.selectedResults].sort((a, b) => (a.username > b.username ? 1 : -1));
