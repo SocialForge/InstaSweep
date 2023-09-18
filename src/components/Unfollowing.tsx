@@ -127,7 +127,7 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleUnfollowFilter = (field: string, currentStatus: boolean) => {
+    const handleFilter = (field: string, currentStatus: boolean) => {
         setState({
             ...state,
             filter: {
@@ -149,14 +149,14 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                         <button
                             name='showSucceeded'
                             className={`filter-toggle ${state.filter.showSucceeded ? 'bg-brand' : ''}`}
-                            onChange={e => handleUnfollowFilter(e.currentTarget.name, state.filter.showSucceeded)}
+                            onChange={e => handleFilter(e.currentTarget.name, state.filter.showSucceeded)}
                         >
                             Succeeded
                         </button>
                         <button
                             name='showFailed'
                             className={`filter-toggle ${state.filter.showFailed ? 'bg-brand' : ''}`}
-                            onChange={e => handleUnfollowFilter(e.currentTarget.name, state.filter.showFailed)}
+                            onChange={e => handleFilter(e.currentTarget.name, state.filter.showFailed)}
                         >
                             Failed
                         </button>

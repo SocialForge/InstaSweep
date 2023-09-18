@@ -205,7 +205,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleScanFilter = (field: string, currentStatus: boolean) => {
+    const handleFilter = (field: string, currentStatus: boolean) => {
         if (state.selectedResults.length > 0) {
             if (!confirm('Changing filter options will clear selected users')) {
                 // Force re-render. Bit of a hack but had an issue where the checkbox state was still
@@ -483,28 +483,28 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                         <p>Filter</p>
                         <button
                             name='showNonFollowers'
-                            onClick={e => handleScanFilter(e.currentTarget.name, state.filter.showNonFollowers)}
+                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showNonFollowers)}
                             className={`filter-toggle ${state.filter.showNonFollowers ? 'bg-brand' : ''}`}
                         >
                             Non-Followers
                         </button>
                         <button
                             name='showFollowers'
-                            onClick={e => handleScanFilter(e.currentTarget.name, state.filter.showFollowers)}
+                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showFollowers)}
                             className={`filter-toggle ${state.filter.showFollowers ? 'bg-brand' : ''}`}
                         >
                             Followers
                         </button>
                         <button
                             name='showVerified'
-                            onClick={e => handleScanFilter(e.currentTarget.name, state.filter.showVerified)}
+                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showVerified)}
                             className={`filter-toggle ${state.filter.showVerified ? 'bg-brand' : ''}`}
                         >
                             Verified
                         </button>
                         <button
                             name='showPrivate'
-                            onClick={e => handleScanFilter(e.currentTarget.name, state.filter.showPrivate)}
+                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showPrivate)}
                             className={`filter-toggle ${state.filter.showPrivate ? 'bg-brand' : ''}`}
                         >
                             Private
