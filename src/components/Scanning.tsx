@@ -396,6 +396,11 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
     const toggleSelectedUsersWhitelistStatus = useCallback(() => {
         let whitelistedResults: readonly Node[] = [];
         setState(prev => {
+            if (prev.selectedResults.length === 0) {
+                toast.error('Must select at least a single user for this action');
+                return prev;
+            }
+
             switch (prev.currentTab) {
                 case 'non_whitelisted':
                     whitelistedResults = [...prev.whitelistedResults, ...prev.selectedResults];
