@@ -45,18 +45,6 @@ interface State {
 const UNFOLLOWERS_PER_PAGE = 50;
 const WHITELISTED_RESULTS_STORAGE_KEY = 'insta-sweep_whitelisted-results';
 
-async function copyListToClipboard(list: readonly Node[], onCopied: () => void): Promise<void> {
-    const sortedList = [...list].sort((a, b) => (a.username > b.username ? 1 : -1));
-
-    let output = '';
-    sortedList.forEach(user => {
-        output += user.username + '\n';
-    });
-
-    await navigator.clipboard.writeText(output);
-    onCopied();
-}
-
 function getMaxPage(nonFollowersList: readonly Node[]): number {
     const pageCalc = Math.ceil(nonFollowersList.length / UNFOLLOWERS_PER_PAGE);
     return pageCalc < 1 ? 1 : pageCalc;
@@ -151,7 +139,8 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         state.filter,
     );
 
-    useOnBeforeUnload(state.percentage < 100);
+    const isActiveProcess = state.percentage < 100;
+    useOnBeforeUnload(isActiveProcess);
 
     useEffect(() => {
         const scan = async () => {
@@ -204,27 +193,40 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleScanFilter = (field: string, currentStatus: boolean) => {
+    const handleFilter = (field: string, currentStatus: boolean) => {
         if (state.selectedResults.length > 0) {
             if (!confirm('Changing filter options will clear selected users')) {
-                // Force re-render. Bit of a hack but had an issue where the checkbox state was still
-                // changing in the UI even when not confirming. So updating the state fixes this
-                // by synchronizing the checkboxes with the filter statuses in the state.
-                setState({ ...state });
                 return;
             }
         }
         setState({
             ...state,
-            // Make sure to clear selected results when changing filter options. This is to avoid having
-            // users selected in the unfollow queue but not visible in the UI, which would be confusing.
+            // Clear selected results when changing filter options to avoid having users selected
+            // in the unfollow queue but not visible in the UI, which would be confusing.
             selectedResults: [],
+            page: 1,
             filter: {
                 ...state.filter,
                 [field]: !currentStatus,
             },
         });
     };
+
+    const copyListToClipboard = useCallback(async (): Promise<void> => {
+        if (state.selectedResults.length === 0) {
+            toast.error('No users selected to copy');
+            return;
+        }
+        const sortedResults = [...state.selectedResults].sort((a, b) => (a.username > b.username ? 1 : -1));
+
+        let output = '';
+        sortedResults.forEach(user => {
+            output += user.username + '\n';
+        });
+
+        await navigator.clipboard.writeText(output);
+        toast.success('User list copied to clipboard');
+    }, [state.selectedResults]);
 
     const isUserSelected = (user: Node): boolean => state.selectedResults.indexOf(user) !== -1;
 
@@ -252,27 +254,23 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
     const toggleAllUsers = useCallback(() => {
         // Avoid allowing to select all before scan completed to avoid confusion
         // regarding what exactly is selected while scanning in progress.
-        if (state.percentage < 100) {
+        if (isActiveProcess) {
             toast.info('Please wait until the scanning process is done');
             return;
         }
-        if (!isAllUsersSelected()) {
-            setState({
-                ...state,
-                selectedResults: usersForDisplay,
-            });
-        } else {
-            setState({
-                ...state,
-                selectedResults: [],
-            });
-        }
-    }, [isAllUsersSelected, state, usersForDisplay]);
+        setState(prev => {
+            const newState: State = {
+                ...prev,
+                selectedResults: isAllUsersSelected() ? [] : usersForDisplay,
+            };
+            return newState;
+        });
+    }, [isAllUsersSelected, usersForDisplay, isActiveProcess]);
 
     const toggleAllUsersThatStartWithLetter = (letter: string) => {
         // Avoid allowing to select all before scan completed to avoid confusion
         // regarding what exactly is selected while scanning in progress.
-        if (state.percentage < 100) {
+        if (isActiveProcess) {
             toast.info('Please wait until the scanning process is done');
             return;
         }
@@ -305,55 +303,117 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
     };
 
     const toggleSearchBar = useCallback(() => {
-        if (state.searchBar.shown) {
-            setState({
-                ...state,
-                searchBar: {
+        setState(prev => {
+            let searchBar: SearchBar;
+            if (prev.searchBar.shown) {
+                searchBar = {
                     shown: false,
-                },
-            });
-        } else {
-            setState({
-                ...state,
-                searchBar: {
+                };
+            } else {
+                searchBar = {
                     shown: true,
                     text: '',
-                },
-            });
-
-            if (searchInputRef.current !== null) {
-                searchInputRef.current.focus();
+                };
             }
+            const newState: State = {
+                ...prev,
+                searchBar,
+            };
+            return newState;
+        });
+
+        if (searchInputRef.current !== null) {
+            searchInputRef.current.focus();
         }
-    }, [state]);
+    }, []);
 
     const changePage = useCallback(
         (direction: 'forwards' | 'backwards') => {
-            switch (direction) {
-                case 'forwards': {
-                    const isLastPage = state.page === getMaxPage(usersForDisplay);
-                    if (isLastPage) {
-                        return;
+            setState(prev => {
+                let newState: State;
+                switch (direction) {
+                    case 'forwards': {
+                        const isLastPage = prev.page === getMaxPage(usersForDisplay);
+                        if (isLastPage) {
+                            return prev;
+                        }
+                        newState = { ...prev, page: prev.page + 1 };
+                        break;
                     }
-                    setState({ ...state, page: state.page + 1 });
-                    break;
-                }
 
-                case 'backwards': {
-                    const isFirstPage = state.page === 1;
-                    if (isFirstPage) {
-                        return;
+                    case 'backwards': {
+                        const isFirstPage = prev.page === 1;
+                        if (isFirstPage) {
+                            return prev;
+                        }
+                        newState = { ...prev, page: prev.page - 1 };
+                        break;
                     }
-                    setState({ ...state, page: state.page - 1 });
-                    break;
+
+                    default:
+                        assertUnreachable(direction);
                 }
+                return newState;
+            });
+        },
+        [usersForDisplay],
+    );
+
+    const changeTab = useCallback((tab: Tab) => {
+        setState(prev => {
+            if (prev.currentTab === tab) {
+                return prev;
+            }
+            const newState: State = {
+                ...prev,
+                currentTab: tab,
+                selectedResults: [],
+            };
+            return newState;
+        });
+    }, []);
+
+    const toggleUserWhitelistStatus = (user: Node) => {
+        let whitelistedResults: readonly Node[] = [];
+        setState(prev => {
+            switch (prev.currentTab) {
+                case 'non_whitelisted':
+                    whitelistedResults = [...prev.whitelistedResults, user];
+                    break;
+
+                case 'whitelisted':
+                    whitelistedResults = prev.whitelistedResults.filter(result => result.id !== user.id);
+                    break;
 
                 default:
-                    assertUnreachable(direction);
+                    assertUnreachable(prev.currentTab);
             }
-        },
-        [state, usersForDisplay],
-    );
+            return { ...prev, whitelistedResults };
+        });
+        localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedResults));
+    };
+
+    const toggleSelectedUsersWhitelistStatus = useCallback(() => {
+        let whitelistedResults: readonly Node[] = [];
+        setState(prev => {
+            switch (prev.currentTab) {
+                case 'non_whitelisted':
+                    whitelistedResults = [...prev.whitelistedResults, ...prev.selectedResults];
+                    break;
+
+                case 'whitelisted':
+                    whitelistedResults = prev.whitelistedResults.filter(
+                        result => prev.selectedResults.indexOf(result) === -1,
+                    );
+                    break;
+
+                default:
+                    assertUnreachable(prev.currentTab);
+            }
+            return { ...prev, whitelistedResults };
+        });
+        localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedResults));
+    }, []);
 
     let currentLetter = '';
     const onNewLetter = (firstLetter: string) => {
@@ -361,14 +421,13 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         return (
             <button
                 className='alphabet-character'
+                title={`Select all users that start with "${currentLetter}"`}
                 onClick={e => toggleAllUsersThatStartWithLetter(e.currentTarget.innerText)}
             >
                 {currentLetter}
             </button>
         );
     };
-
-    const onListCopiedToClipboard = () => toast.success('User list copied to clipboard');
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
@@ -380,19 +439,36 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 e.preventDefault();
                 changePage('backwards');
             }
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                switch (state.currentTab) {
+                    case 'non_whitelisted':
+                        changeTab('whitelisted');
+                        break;
+                    case 'whitelisted':
+                        changeTab('non_whitelisted');
+                        break;
+                    default:
+                        assertUnreachable(state.currentTab);
+                }
+            }
             if (e.ctrlKey && e.key === 'a' && !state.searchBar.shown) {
                 e.preventDefault();
                 toggleAllUsers();
             }
             if (e.ctrlKey && e.key === 'c' && !state.searchBar.shown) {
                 e.preventDefault();
-                copyListToClipboard(state.selectedResults, onListCopiedToClipboard);
+                copyListToClipboard();
             }
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
                 toggleSearchBar();
             }
-            if (state.searchBar.shown && e.key === 'Escape') {
+            if (e.ctrlKey && e.key === 'x') {
+                e.preventDefault();
+                toggleSelectedUsersWhitelistStatus();
+            }
+            if (e.key === 'Escape' && state.searchBar.shown) {
                 // Close search bar on ESC.
                 e.preventDefault();
                 toggleSearchBar();
@@ -400,15 +476,48 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         };
         document.addEventListener('keydown', onKeyDown);
         return () => document.removeEventListener('keydown', onKeyDown);
-    }, [changePage, toggleAllUsers, toggleSearchBar, state.selectedResults, state.searchBar.shown]);
+    }, [
+        changePage,
+        toggleAllUsers,
+        toggleSearchBar,
+        state.selectedResults,
+        state.searchBar.shown,
+        state.currentTab,
+        changeTab,
+        copyListToClipboard,
+        toggleSelectedUsersWhitelistStatus,
+    ]);
+
+    let whitelistButtonMarkup: React.JSX.Element;
+    switch (state.currentTab) {
+        case 'non_whitelisted':
+            whitelistButtonMarkup = (
+                <button title='Add selected users to whitelist (CTRL+W)' onClick={toggleSelectedUsersWhitelistStatus}>
+                    <UserCheckIcon size={2} />
+                </button>
+            );
+            break;
+
+        case 'whitelisted':
+            whitelistButtonMarkup = (
+                <button
+                    title='Remove selected users from whitelist (CTRL+W)'
+                    onClick={toggleSelectedUsersWhitelistStatus}
+                >
+                    <UserUncheckIcon size={2} />
+                </button>
+            );
+            break;
+
+        default:
+            assertUnreachable(state.currentTab);
+    }
 
     return (
         <div className='scanning'>
-            <AppHeader isActiveProcess={state.percentage < 100}>
-                <button
-                    title='Copy user list (CTRL+C)'
-                    onClick={() => copyListToClipboard(state.selectedResults, onListCopiedToClipboard)}
-                >
+            <AppHeader isActiveProcess={isActiveProcess}>
+                {whitelistButtonMarkup}
+                <button title='Copy user list (CTRL+C)' onClick={copyListToClipboard}>
                     <CopyIcon size={2} />
                 </button>
                 <input
@@ -437,7 +546,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                     {isAllUsersSelected() ? <CheckSquareIcon size={2} /> : <SquareIcon size={2} />}
                 </button>
             </AppHeader>
-            {state.percentage < 100 && <progress className='progressbar' value={state.percentage} max='100' />}
+            {isActiveProcess && <progress className='progressbar' value={state.percentage} max='100' />}
 
             <section className='flex'>
                 <aside className='app-sidebar'>
@@ -445,28 +554,28 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                         <p>Filter</p>
                         <button
                             name='showNonFollowers'
-                            onClick={e => handleScanFilter(e.currentTarget.name, state.filter.showNonFollowers)}
+                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showNonFollowers)}
                             className={`filter-toggle ${state.filter.showNonFollowers ? 'bg-brand' : ''}`}
                         >
                             Non-Followers
                         </button>
                         <button
                             name='showFollowers'
-                            onClick={e => handleScanFilter(e.currentTarget.name, state.filter.showFollowers)}
+                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showFollowers)}
                             className={`filter-toggle ${state.filter.showFollowers ? 'bg-brand' : ''}`}
                         >
                             Followers
                         </button>
                         <button
                             name='showVerified'
-                            onClick={e => handleScanFilter(e.currentTarget.name, state.filter.showVerified)}
+                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showVerified)}
                             className={`filter-toggle ${state.filter.showVerified ? 'bg-brand' : ''}`}
                         >
                             Verified
                         </button>
                         <button
                             name='showPrivate'
-                            onClick={e => handleScanFilter(e.currentTarget.name, state.filter.showPrivate)}
+                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showPrivate)}
                             className={`filter-toggle ${state.filter.showPrivate ? 'bg-brand' : ''}`}
                         >
                             Private
@@ -515,31 +624,15 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                     <nav className='tabs-container'>
                         <div
                             className={`tab ${state.currentTab === 'non_whitelisted' ? 'tab-active' : ''}`}
-                            onClick={() => {
-                                if (state.currentTab === 'non_whitelisted') {
-                                    return;
-                                }
-                                setState({
-                                    ...state,
-                                    currentTab: 'non_whitelisted',
-                                    selectedResults: [],
-                                });
-                            }}
+                            title='Non-whitelisted tab (TAB)'
+                            onClick={() => changeTab('non_whitelisted')}
                         >
                             Non-Whitelisted
                         </div>
                         <div
                             className={`tab ${state.currentTab === 'whitelisted' ? 'tab-active' : ''}`}
-                            onClick={() => {
-                                if (state.currentTab === 'whitelisted') {
-                                    return;
-                                }
-                                setState({
-                                    ...state,
-                                    currentTab: 'whitelisted',
-                                    selectedResults: [],
-                                });
-                            }}
+                            title='Whitelisted tab (TAB)'
+                            onClick={() => changeTab('whitelisted')}
                         >
                             Whitelisted
                         </div>
@@ -560,34 +653,19 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                                                 // Prevent selecting result when trying to add to whitelist.
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                let whitelistedResults: readonly Node[] = [];
-                                                switch (state.currentTab) {
-                                                    case 'non_whitelisted':
-                                                        whitelistedResults = [...state.whitelistedResults, user];
-                                                        break;
-
-                                                    case 'whitelisted':
-                                                        whitelistedResults = state.whitelistedResults.filter(
-                                                            result => result.id !== user.id,
-                                                        );
-                                                        break;
-
-                                                    default:
-                                                        assertUnreachable(state.currentTab);
-                                                }
-                                                localStorage.setItem(
-                                                    WHITELISTED_RESULTS_STORAGE_KEY,
-                                                    JSON.stringify(whitelistedResults),
-                                                );
-                                                setState({ ...state, whitelistedResults });
+                                                toggleUserWhitelistStatus(user);
                                             }}
                                         >
                                             <img className='avatar' alt={user.username} src={user.profile_pic_url} />
                                             <span className='avatar-icon-overlay-container'>
                                                 {state.currentTab === 'non_whitelisted' ? (
-                                                    <UserCheckIcon size={2} />
+                                                    <span title='Add to whitelist'>
+                                                        <UserCheckIcon size={2} />
+                                                    </span>
                                                 ) : (
-                                                    <UserUncheckIcon size={2} />
+                                                    <span title='Remove from whitelist'>
+                                                        <UserUncheckIcon size={2} />
+                                                    </span>
                                                 )}
                                             </span>
                                         </div>

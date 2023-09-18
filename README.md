@@ -31,21 +31,19 @@ A fully-fledged Instagram tool that allows you see who doesn't follow you back a
 
  <img src="./assets/README.md/site.png" alt="Site" />
 
-3. Once you have copied the code, you can close this page and go to the instagram website.
+3. Open [Instagram](instagram.com), log into your account and open the developer console (F12) and paste the code.
 
-4. Log into your account and open the developer console (F12) and paste the code.
-
-5. You will be met with the following interface:
+4. You will be met with the following interface:
 
  <img src="./assets/README.md/app_initial.png" alt="Initial screen" width="50%" />
 
-6. Click anywhere to start scanning for users who do not follow you back.
+5. Click anywhere to start the scanning process.
 
-7. Once it finishes printing the users, you will be met with the following screen which will show you the results:
+6. Once it finishes, you will be met with the following screen which will show you the results:
 
  <img src="./assets/README.md/app_results.png" alt="Results screen" width="50%" />
 
-8. If you wish to unfollow any of these users, you can select 1 or more of them by clicking on them and then clicking the "UNFOLLOW" button on the bottom left
+7. If you wish to unfollow any of these users, you can select 1 or more of them by clicking on them and then clicking the "UNFOLLOW" button on the bottom left.
 
 ## HotKeys \*️⃣
 
@@ -53,9 +51,11 @@ Only relevant in "Scanning" screen.
 
 -   **LEFT ARROW** - previous page
 -   **RIGHT ARROW** - next page
+-   **TAB** - switch tab
 -   **CTRL+A** - select all users in list
 -   **CTRL+S** - open search bar
 -   **CTRL+C** - copy selected user list to clipboard
+-   **CTRL+X** - whitelist / unwhitelist selected users
 
 ## Dev 🔧
 
@@ -85,4 +85,4 @@ To get started, follow these steps:
 
 **Disclaimer:** This is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Instagram.
 
-Use it at your own risk!.
+Use it at your own risk!
