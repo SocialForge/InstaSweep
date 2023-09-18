@@ -17,6 +17,7 @@
     }
 
     &_error {
+        color: white;
         @extend .bg-error;
     }
 }
