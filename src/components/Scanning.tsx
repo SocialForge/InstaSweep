@@ -257,18 +257,14 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             toast.info('Please wait until the scanning process is done');
             return;
         }
-        if (!isAllUsersSelected()) {
-            setState({
-                ...state,
-                selectedResults: usersForDisplay,
-            });
-        } else {
-            setState({
-                ...state,
-                selectedResults: [],
-            });
-        }
-    }, [isAllUsersSelected, state, usersForDisplay, isActiveProcess]);
+        setState(prev => {
+            const newState: State = {
+                ...prev,
+                selectedResults: isAllUsersSelected() ? [] : usersForDisplay,
+            };
+            return newState;
+        });
+    }, [isAllUsersSelected, usersForDisplay, isActiveProcess]);
 
     const toggleAllUsersThatStartWithLetter = (letter: string) => {
         // Avoid allowing to select all before scan completed to avoid confusion
@@ -306,69 +302,75 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
     };
 
     const toggleSearchBar = useCallback(() => {
-        if (state.searchBar.shown) {
-            setState({
-                ...state,
-                searchBar: {
+        setState(prev => {
+            let searchBar: SearchBar;
+            if (prev.searchBar.shown) {
+                searchBar = {
                     shown: false,
-                },
-            });
-        } else {
-            setState({
-                ...state,
-                searchBar: {
+                };
+            } else {
+                searchBar = {
                     shown: true,
                     text: '',
-                },
-            });
-
-            if (searchInputRef.current !== null) {
-                searchInputRef.current.focus();
+                };
             }
+            const newState: State = {
+                ...prev,
+                searchBar,
+            };
+            return newState;
+        });
+
+        if (searchInputRef.current !== null) {
+            searchInputRef.current.focus();
         }
-    }, [state]);
+    }, []);
 
     const changePage = useCallback(
         (direction: 'forwards' | 'backwards') => {
-            switch (direction) {
-                case 'forwards': {
-                    const isLastPage = state.page === getMaxPage(usersForDisplay);
-                    if (isLastPage) {
-                        return;
+            setState(prev => {
+                let newState: State;
+                switch (direction) {
+                    case 'forwards': {
+                        const isLastPage = prev.page === getMaxPage(usersForDisplay);
+                        if (isLastPage) {
+                            return prev;
+                        }
+                        newState = { ...prev, page: prev.page + 1 };
+                        break;
                     }
-                    setState({ ...state, page: state.page + 1 });
-                    break;
-                }
 
-                case 'backwards': {
-                    const isFirstPage = state.page === 1;
-                    if (isFirstPage) {
-                        return;
+                    case 'backwards': {
+                        const isFirstPage = prev.page === 1;
+                        if (isFirstPage) {
+                            return prev;
+                        }
+                        newState = { ...prev, page: prev.page - 1 };
+                        break;
                     }
-                    setState({ ...state, page: state.page - 1 });
-                    break;
+
+                    default:
+                        assertUnreachable(direction);
                 }
-
-                default:
-                    assertUnreachable(direction);
-            }
-        },
-        [state, usersForDisplay],
-    );
-
-    const changeTab = useCallback(
-        (tab: Tab) => {
-            if (state.currentTab === tab) {
-                return;
-            }
-            setState({
-                ...state,
-                currentTab: tab,
-                selectedResults: [],
+                return newState;
             });
         },
-        [state],
+        [usersForDisplay],
     );
+
+    const changeTab = useCallback((tab: Tab) => {
+        setState(prev => {
+            if (prev.currentTab === tab) {
+                return prev;
+            }
+            const newState: State = {
+                ...prev,
+                currentTab: tab,
+                selectedResults: [],
+            };
+            return newState;
+        });
+    }, []);
 
     let currentLetter = '';
     const onNewLetter = (firstLetter: string) => {
