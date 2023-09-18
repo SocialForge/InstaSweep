@@ -605,9 +605,13 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                                             <img className='avatar' alt={user.username} src={user.profile_pic_url} />
                                             <span className='avatar-icon-overlay-container'>
                                                 {state.currentTab === 'non_whitelisted' ? (
-                                                    <UserCheckIcon size={2} />
+                                                    <span title='Add to whitelist'>
+                                                        <UserCheckIcon size={2} />
+                                                    </span>
                                                 ) : (
-                                                    <UserUncheckIcon size={2} />
+                                                    <span title='Remove from whitelist'>
+                                                        <UserUncheckIcon size={2} />
+                                                    </span>
                                                 )}
                                             </span>
                                         </div>
