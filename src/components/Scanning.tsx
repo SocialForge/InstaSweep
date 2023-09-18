@@ -45,18 +45,6 @@ interface State {
 const UNFOLLOWERS_PER_PAGE = 50;
 const WHITELISTED_RESULTS_STORAGE_KEY = 'insta-sweep_whitelisted-results';
 
-async function copyListToClipboard(list: readonly Node[], onCopied: () => void): Promise<void> {
-    const sortedList = [...list].sort((a, b) => (a.username > b.username ? 1 : -1));
-
-    let output = '';
-    sortedList.forEach(user => {
-        output += user.username + '\n';
-    });
-
-    await navigator.clipboard.writeText(output);
-    onCopied();
-}
-
 function getMaxPage(nonFollowersList: readonly Node[]): number {
     const pageCalc = Math.ceil(nonFollowersList.length / UNFOLLOWERS_PER_PAGE);
     return pageCalc < 1 ? 1 : pageCalc;
@@ -224,6 +212,22 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         });
     };
 
+    const copyListToClipboard = useCallback(async (): Promise<void> => {
+        if (state.selectedResults.length === 0) {
+            toast.error('No users selected to copy');
+            return;
+        }
+        const sortedResults = [...state.selectedResults].sort((a, b) => (a.username > b.username ? 1 : -1));
+
+        let output = '';
+        sortedResults.forEach(user => {
+            output += user.username + '\n';
+        });
+
+        await navigator.clipboard.writeText(output);
+        toast.success('User list copied to clipboard');
+    }, [state.selectedResults]);
+
     const isUserSelected = (user: Node): boolean => state.selectedResults.indexOf(user) !== -1;
 
     const toggleUser = (user: Node) => {
@@ -383,8 +387,6 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         );
     };
 
-    const onListCopiedToClipboard = () => toast.success('User list copied to clipboard');
-
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowRight') {
@@ -414,7 +416,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             }
             if (e.ctrlKey && e.key === 'c' && !state.searchBar.shown) {
                 e.preventDefault();
-                copyListToClipboard(state.selectedResults, onListCopiedToClipboard);
+                copyListToClipboard();
             }
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
@@ -436,15 +438,13 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         state.searchBar.shown,
         state.currentTab,
         changeTab,
+        copyListToClipboard,
     ]);
 
     return (
         <div className='scanning'>
             <AppHeader isActiveProcess={isActiveProcess}>
-                <button
-                    title='Copy user list (CTRL+C)'
-                    onClick={() => copyListToClipboard(state.selectedResults, onListCopiedToClipboard)}
-                >
+                <button title='Copy user list (CTRL+C)' onClick={copyListToClipboard}>
                     <CopyIcon size={2} />
                 </button>
                 <input
