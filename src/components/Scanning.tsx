@@ -373,6 +373,48 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         });
     }, []);
 
+    const toggleUserWhitelistStatus = (user: Node) => {
+        let whitelistedResults: readonly Node[] = [];
+        setState(prev => {
+            switch (prev.currentTab) {
+                case 'non_whitelisted':
+                    whitelistedResults = [...prev.whitelistedResults, user];
+                    break;
+
+                case 'whitelisted':
+                    whitelistedResults = prev.whitelistedResults.filter(result => result.id !== user.id);
+                    break;
+
+                default:
+                    assertUnreachable(prev.currentTab);
+            }
+            return { ...prev, whitelistedResults };
+        });
+        localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedResults));
+    };
+
+    const toggleSelectedUsersWhitelistStatus = useCallback(() => {
+        let whitelistedResults: readonly Node[] = [];
+        setState(prev => {
+            switch (prev.currentTab) {
+                case 'non_whitelisted':
+                    whitelistedResults = [...prev.whitelistedResults, ...prev.selectedResults];
+                    break;
+
+                case 'whitelisted':
+                    whitelistedResults = prev.whitelistedResults.filter(
+                        result => prev.selectedResults.indexOf(result) === -1,
+                    );
+                    break;
+
+                default:
+                    assertUnreachable(prev.currentTab);
+            }
+            return { ...prev, whitelistedResults };
+        });
+        localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedResults));
+    }, []);
+
     let currentLetter = '';
     const onNewLetter = (firstLetter: string) => {
         currentLetter = firstLetter;
@@ -422,6 +464,10 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 e.preventDefault();
                 toggleSearchBar();
             }
+            if (e.ctrlKey && e.key === 'x') {
+                e.preventDefault();
+                toggleSelectedUsersWhitelistStatus();
+            }
             if (e.key === 'Escape' && state.searchBar.shown) {
                 // Close search bar on ESC.
                 e.preventDefault();
@@ -439,11 +485,38 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         state.currentTab,
         changeTab,
         copyListToClipboard,
+        toggleSelectedUsersWhitelistStatus,
     ]);
+
+    let whitelistButtonMarkup: React.JSX.Element;
+    switch (state.currentTab) {
+        case 'non_whitelisted':
+            whitelistButtonMarkup = (
+                <button title='Add selected users to whitelist (CTRL+W)' onClick={toggleSelectedUsersWhitelistStatus}>
+                    <UserCheckIcon size={2} />
+                </button>
+            );
+            break;
+
+        case 'whitelisted':
+            whitelistButtonMarkup = (
+                <button
+                    title='Remove selected users from whitelist (CTRL+W)'
+                    onClick={toggleSelectedUsersWhitelistStatus}
+                >
+                    <UserUncheckIcon size={2} />
+                </button>
+            );
+            break;
+
+        default:
+            assertUnreachable(state.currentTab);
+    }
 
     return (
         <div className='scanning'>
             <AppHeader isActiveProcess={isActiveProcess}>
+                {whitelistButtonMarkup}
                 <button title='Copy user list (CTRL+C)' onClick={copyListToClipboard}>
                     <CopyIcon size={2} />
                 </button>
@@ -580,26 +653,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                                                 // Prevent selecting result when trying to add to whitelist.
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                let whitelistedResults: readonly Node[] = [];
-                                                switch (state.currentTab) {
-                                                    case 'non_whitelisted':
-                                                        whitelistedResults = [...state.whitelistedResults, user];
-                                                        break;
-
-                                                    case 'whitelisted':
-                                                        whitelistedResults = state.whitelistedResults.filter(
-                                                            result => result.id !== user.id,
-                                                        );
-                                                        break;
-
-                                                    default:
-                                                        assertUnreachable(state.currentTab);
-                                                }
-                                                localStorage.setItem(
-                                                    WHITELISTED_RESULTS_STORAGE_KEY,
-                                                    JSON.stringify(whitelistedResults),
-                                                );
-                                                setState({ ...state, whitelistedResults });
+                                                toggleUserWhitelistStatus(user);
                                             }}
                                         >
                                             <img className='avatar' alt={user.username} src={user.profile_pic_url} />

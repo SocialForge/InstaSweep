@@ -57,6 +57,7 @@ Only relevant in "Scanning" screen.
 -   **CTRL+A** - select all users in list
 -   **CTRL+S** - open search bar
 -   **CTRL+C** - copy selected user list to clipboard
+-   **CTRL+X** - whitelist / unwhitelist selected users
 
 ## Dev 🔧
 
