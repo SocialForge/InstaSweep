@@ -216,6 +216,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             // Clear selected results when changing filter options to avoid having users selected
             // in the unfollow queue but not visible in the UI, which would be confusing.
             selectedResults: [],
+            page: 1,
             filter: {
                 ...state.filter,
                 [field]: !currentStatus,
