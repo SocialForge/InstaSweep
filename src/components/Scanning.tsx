@@ -208,10 +208,6 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
     const handleFilter = (field: string, currentStatus: boolean) => {
         if (state.selectedResults.length > 0) {
             if (!confirm('Changing filter options will clear selected users')) {
-                // Force re-render. Bit of a hack but had an issue where the checkbox state was still
-                // changing in the UI even when not confirming. So updating the state fixes this
-                // by synchronizing the checkboxes with the filter statuses in the state.
-                setState({ ...state });
                 return;
             }
         }
