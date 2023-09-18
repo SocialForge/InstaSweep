@@ -375,6 +375,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         return (
             <button
                 className='alphabet-character'
+                title={`Select all users that start with "${currentLetter}"`}
                 onClick={e => toggleAllUsersThatStartWithLetter(e.currentTarget.innerText)}
             >
                 {currentLetter}
