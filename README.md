@@ -29,19 +29,19 @@ A fully-fledged Instagram tool that allows you see who doesn't follow you back a
 
 2. Press the COPY button to copy the code.
 
- <img src="./assets/README.md/site.png" alt="Site" />
+ <img src="./public/assets/README.md/site.png" alt="Site" />
 
 3. Open [Instagram](instagram.com), log into your account and open the developer console (F12) and paste the code.
 
 4. You will be met with the following interface:
 
- <img src="./assets/README.md/app_initial.png" alt="Initial screen" width="50%" />
+ <img src="./public/assets/README.md/app_initial.png" alt="Initial screen" width="50%" />
 
 5. Click anywhere to start the scanning process.
 
 6. Once it finishes, you will be met with the following screen which will show you the results:
 
- <img src="./assets/README.md/app_results.png" alt="Results screen" width="50%" />
+ <img src="./public/assets/README.md/app_results.png" alt="Results screen" width="50%" />
 
 7. If you wish to unfollow any of these users, you can select 1 or more of them by clicking on them and then clicking the "UNFOLLOW" button on the bottom left.
 
