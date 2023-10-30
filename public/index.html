@@ -20,7 +20,8 @@
         }
 
         body {
-            margin: 0;
+            max-width: 1300px;
+            margin: 0 auto;
             color: white;
             font-family: system-ui;
         }
@@ -75,7 +76,6 @@
         }
 
         .code-container {
-            max-width: 50%;
             margin: 0 auto;
             margin-top: 50px;
         }
@@ -93,6 +93,16 @@
             width: 150px;
             border-radius: 50%;
             animation: pulse 2s infinite;
+        }
+
+        .chrome-extension-notification {
+            margin-top: 5rem;
+            padding: 2rem;
+            background: linear-gradient(140deg, #bdba45, #fff);
+            background-attachment: fixed;
+            color: black;
+            border-radius: 5px;
+            font-size: 1.2em;
         }
 
         @keyframes pulse {
@@ -117,13 +127,26 @@
             </svg>
             <h1>InstaSweep</h1>
         </div>
+
         <div class="copy-button-container">
             <button class="copy-button" onclick="copyToClipboard()">COPY</button>
         </div>
+
         <details class="code-container">
             <summary>Source code</summary>
             <textarea id="code"></textarea>
         </details>
+
+        <article class="chrome-extension-notification">
+            <strong>ℹ️ NOTE!</strong>
+            <br /><br />
+            <span>This scripts is also available as an extension for Chromium-based browsers.</span>
+            <br />
+            <span
+                >For more information, see the
+                <a href="https://github.com/SocialForge/InstaSweep#method-2-chrome-extension">following guide.</a></span
+            >
+        </article>
 
         <div class="toast hidden"></div>
     </body>
