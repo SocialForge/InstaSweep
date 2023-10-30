@@ -57,7 +57,7 @@ jobs:
               uses: softprops/action-gh-release@v1
               with:
                   files: InstaSweep.zip
-                  tag_name: release-${{ github.sha }}
+                  tag_name: ${{ steps.time.outputs.time }}_${{ github.sha }}
                   body: Release notes
                   draft: false
                   prerelease: false
