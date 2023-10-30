@@ -47,15 +47,13 @@ A fully-fledged Instagram tool that allows you see who doesn't follow you back a
 
 5. Enable `Developer mode` in order to manually add an extension
 
-6. Click `Load unpacked`
+6. Click `Load unpacked`. This will open the browser's file selection dialog
 
-7. This will open the browser's file selection dialog
+7. Navigate to the previously extracted `public` directory and open it
 
-8. Navigate to the previously extracted `public` directory and open it
+8. Once inside, press `Select folder` and the extension should be added to your browser extensions
 
-9. Once inside, press `Select folder` and the extension should be added to your browser extensions
-
-10. Open [Instagram](instagram.com), log into your account and click on the extension, or hit **CTRL+I** on the keyboard to execute.
+9. Open [Instagram](instagram.com), log into your account and click on the extension, or hit **CTRL+I** on the keyboard to execute.
 
 ## Running the script
 
