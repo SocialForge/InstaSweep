@@ -10,7 +10,7 @@ concurrency:
     cancel-in-progress: false
 
 permissions:
-    contents: read
+    contents: write
     pages: write
     id-token: write
 
@@ -51,9 +51,13 @@ jobs:
 
             # RELEASE
             - name: Compress folder
-              run: zip -r InstaSweep.zip public/
+              run: zip -j -r InstaSweep.zip public/
 
             - name: Create Release
               uses: softprops/action-gh-release@v1
               with:
                   files: InstaSweep.zip
+                  tag_name: release-${{ github.sha }}
+                  body: Release notes
+                  draft: false
+                  prerelease: false
