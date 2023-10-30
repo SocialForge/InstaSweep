@@ -23,6 +23,8 @@ A fully-fledged Instagram tool that allows you see who doesn't follow you back a
 
 ## Usage
 
+### Method 1: Manual copy and paste
+
 1.  Go to the following URL:
 
 ### https://SocialForge.github.io/InstaSweep/
@@ -33,17 +35,41 @@ A fully-fledged Instagram tool that allows you see who doesn't follow you back a
 
 3. Open [Instagram](instagram.com), log into your account and open the developer console (F12) and paste the code.
 
-4. You will be met with the following interface:
+### Method 2: Chrome extension
+
+1. Download the latest `InstaSweep.zip` file from the repository's [`Releases`](https://github.com/SocialForge/InstaSweep/releases) section.
+
+2. Unzip the contents of the file.
+
+3. Open a Chromium-based web browser (Chrome, Chromium, Brave, Edge, etc...)
+
+4. Go to `Manage extension` menu within the web browser
+
+5. Enable `Developer mode` in order to manually add an extension
+
+6. Click `Load unpacked`
+
+7. This will open the browser's file selection dialog
+
+8. Navigate to the previously extracted `public` directory and open it
+
+9. Once inside, press `Select folder` and the extension should be added to your browser extensions
+
+10. Open [Instagram](instagram.com), log into your account and click on the extension, or hit **CTRL+I** on the keyboard to execute.
+
+## Running the script
+
+Upon running the script via any of the methods mentioned above, you will be met with the following interface:
 
  <img src="./public/assets/README.md/app_initial.png" alt="Initial screen" width="50%" />
 
-5. Click anywhere to start the scanning process.
+Click anywhere to start the scanning process.
 
-6. Once it finishes, you will be met with the following screen which will show you the results:
+Once it finishes, you will be met with the following screen which will show you the results:
 
  <img src="./public/assets/README.md/app_results.png" alt="Results screen" width="50%" />
 
-7. If you wish to unfollow any of these users, you can select 1 or more of them by clicking on them and then clicking the "UNFOLLOW" button on the bottom left.
+If you wish to unfollow any of these users, you can select 1 or more of them by clicking on them and then clicking the "UNFOLLOW" button on the bottom left.
 
 ## HotKeys \*️⃣
 
