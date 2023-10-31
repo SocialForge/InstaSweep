@@ -7,7 +7,7 @@ import type { Node, User } from 'model/user';
 import { CopyIcon } from '../common/icons/CopyIcon';
 import { SearchIcon } from '../common/icons/SearchIcon';
 import { CheckSquareIcon } from '../common/icons/CheckSquareIcon';
-import { SquareIcon } from '../common/icons/Square';
+import { SquareIcon } from '../common/icons/SquareIcon';
 import { UserCheckIcon } from '../common/icons/UserCheckIcon';
 import { UserUncheckIcon } from '../common/icons/UserUncheckIcon';
 import { useOnBeforeUnload } from '../hooks/on-before-unload';
