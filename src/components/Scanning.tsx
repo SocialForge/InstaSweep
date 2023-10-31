@@ -497,7 +497,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
     switch (state.currentTab) {
         case 'non_whitelisted':
             whitelistButtonMarkup = (
-                <button title='Add selected users to whitelist (CTRL+W)' onClick={toggleSelectedUsersWhitelistStatus}>
+                <button title='Add selected users to whitelist (CTRL+X)' onClick={toggleSelectedUsersWhitelistStatus}>
                     <UserCheckIcon size={2} />
                 </button>
             );
@@ -506,7 +506,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         case 'whitelisted':
             whitelistButtonMarkup = (
                 <button
-                    title='Remove selected users from whitelist (CTRL+W)'
+                    title='Remove selected users from whitelist (CTRL+X)'
                     onClick={toggleSelectedUsersWhitelistStatus}
                 >
                     <UserUncheckIcon size={2} />
