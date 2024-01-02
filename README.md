@@ -29,11 +29,13 @@ A fully-fledged Instagram tool that allows you see who doesn't follow you back a
 
 ### https://SocialForge.github.io/InstaSweep/
 
-2. Press the COPY button to copy the code.
+2. Press the `COPY` button to copy the code
 
  <img src="./public/assets/README.md/site.png" alt="Site" />
 
-3. Open [Instagram](instagram.com), log into your account and open the developer console (F12) and paste the code.
+3. Open [Instagram](instagram.com) and log into your account
+
+4. Open the developer console (F12) and paste the code
 
 ### Method 2: Chrome extension
 
@@ -99,11 +101,11 @@ To get started, follow these steps:
 
 ## Notes 📔
 
-**_The more users you have to check, the more time it will take_**
+-   **_The more users you have to check, the more time it will take_**
 
-**_The script has been tested only on Chromium-based browsers_**
+-   **_The script has been tested only on Chromium-based browsers_**
 
-**_The script is actively supported only on Chromium-based browsers_**
+-   **_The script is actively supported only on Chromium-based browsers_**
 
 ## Legal ⚖️
 
