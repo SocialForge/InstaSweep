@@ -1,6 +1,6 @@
 # InstaSweep
 
-[![Maintenance](https://img.shields.io/maintenance/yes/2023)](https://github.com/SocialForge/InstaSweep)
+[![Maintenance](https://img.shields.io/maintenance/yes/2024)](https://github.com/SocialForge/InstaSweep)
 
 A fully-fledged Instagram tool that allows you see who doesn't follow you back and take action!  
 <u>Browser-based and requires no downloads or installations!</u>
