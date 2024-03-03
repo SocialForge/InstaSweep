@@ -10,7 +10,7 @@ import { CheckSquareIcon } from '../common/icons/CheckSquareIcon';
 import { SquareIcon } from '../common/icons/SquareIcon';
 import { UserCheckIcon } from '../common/icons/UserCheckIcon';
 import { UserUncheckIcon } from '../common/icons/UserUncheckIcon';
-import { useOnBeforeUnload } from '../hooks/on-before-unload';
+import { useOnBeforeUnload } from '../common/hooks';
 import { LockIcon } from '../common/icons/LockIcon';
 
 type Tab = 'non_whitelisted' | 'whitelisted';

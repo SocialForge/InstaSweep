@@ -4,7 +4,7 @@ import { AppHeader } from './AppHeader';
 import { getCookie, sleep, unfollowUserUrlGenerator } from '../common/utils';
 import { toast } from '../common/toast';
 import type { Node } from 'model/user';
-import { useOnBeforeUnload } from '../hooks/on-before-unload';
+import { useOnBeforeUnload } from '../common/hooks';
 
 interface Filter {
     readonly showSucceeded: boolean;
