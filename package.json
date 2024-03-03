@@ -30,6 +30,6 @@
         "webpack-cli": "^5.1.4"
     },
     "dependencies": {
-        "preact": "10.18.1"
+        "preact": "^10.18.1"
     }
 }
