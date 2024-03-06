@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { AppHeader } from './AppHeader';
-import { getCookie, sleep, unfollowUserUrlGenerator } from '../common/utils';
+import { sleep } from '../common/utils';
 import { toast } from '../common/toast';
 import type { Node } from 'model/user';
 import { useOnBeforeUnload } from '../common/hooks';
+import { InstagramService } from '../common/services';
 
 interface Filter {
     readonly showSucceeded: boolean;
@@ -19,7 +20,6 @@ interface LogEntry {
 interface State {
     readonly searchTerm: string;
     readonly percentage: number;
-    readonly usersToUnfollow: readonly Node[];
     readonly unfollowLog: readonly LogEntry[];
     readonly filter: Filter;
 }
@@ -45,7 +45,6 @@ function getLogForDisplay(log: readonly LogEntry[], searchTerm: string, filter: 
 export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: readonly Node[] }) {
     const [state, setState] = useState<State>({
         searchTerm: '',
-        usersToUnfollow, // TODO: get results
         percentage: 0,
         unfollowLog: [],
         filter: {
@@ -54,30 +53,19 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
         },
     });
 
+    const instagramService = useMemo(() => new InstagramService(), []);
+
     const isActiveProcess = state.percentage < 100;
     useOnBeforeUnload(isActiveProcess);
 
     useEffect(() => {
         const unfollow = async () => {
-            const csrfToken = getCookie('csrftoken');
-            if (csrfToken === null) {
-                throw new Error('csrftoken cookie is null');
-            }
-
             let counter = 0;
-            for (const user of state.usersToUnfollow) {
+            for (const user of usersToUnfollow) {
                 counter += 1;
-                const percentage = Math.floor((counter / state.usersToUnfollow.length) * 100);
+                const percentage = Math.floor((counter / usersToUnfollow.length) * 100);
                 try {
-                    await fetch(unfollowUserUrlGenerator(user.id), {
-                        headers: {
-                            'content-type': 'application/x-www-form-urlencoded',
-                            'x-csrftoken': csrfToken,
-                        },
-                        method: 'POST',
-                        mode: 'cors',
-                        credentials: 'include',
-                    });
+                    await instagramService.unfollow(user.id);
                     setState(prevState => {
                         const newState: State = {
                             ...prevState,
@@ -110,7 +98,7 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                     });
                 }
                 // If unfollowing the last user in the list, no reason to wait.
-                if (user === state.usersToUnfollow[state.usersToUnfollow.length - 1]) {
+                if (user === usersToUnfollow[usersToUnfollow.length - 1]) {
                     break;
                 }
                 await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
@@ -123,9 +111,7 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
             }
         };
         unfollow();
-        // TODO: Find a way to fix dependency array issue.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [instagramService, usersToUnfollow]);
 
     const handleFilter = (field: string, currentStatus: boolean) => {
         setState({
@@ -163,7 +149,7 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                     </menu>
                 </aside>
                 <article className='unfollow-log-container'>
-                    {state.unfollowLog.length === state.usersToUnfollow.length && (
+                    {state.unfollowLog.length === usersToUnfollow.length && (
                         <>
                             <hr />
                             <div className='fs-large p-medium clr-success'>All DONE!</div>
@@ -183,12 +169,12 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                                     &nbsp;{entry.user.username}
                                 </a>
                                 <span className='clr-cyan'>
-                                    &nbsp; [{index + 1}/{state.usersToUnfollow.length}]
+                                    &nbsp; [{index + 1}/{usersToUnfollow.length}]
                                 </span>
                             </div>
                         ) : (
                             <div className='p-medium clr-error' key={entry.user.id}>
-                                Failed to unfollow {entry.user.username} [{index + 1}/{state.usersToUnfollow.length}]
+                                Failed to unfollow {entry.user.username} [{index + 1}/{usersToUnfollow.length}]
                             </div>
                         ),
                     )}
