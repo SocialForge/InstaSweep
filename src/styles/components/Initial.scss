@@ -5,6 +5,7 @@
         left: 0;
         right: 0;
         height: 100vh;
+        @extend .w-100;
 
         &-text {
             max-width: 50rem;
