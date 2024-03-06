@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AppHeader } from './AppHeader';
-import { assertUnreachable, sleep, urlGenerator } from '../common/utils';
+import { assertUnreachable, sleep } from '../common/utils';
 import { toast } from '../common/toast';
 import type { Node, User } from 'model/user';
 import { CopyIcon } from '../common/icons/CopyIcon';
@@ -10,8 +10,9 @@ import { CheckSquareIcon } from '../common/icons/CheckSquareIcon';
 import { SquareIcon } from '../common/icons/SquareIcon';
 import { UserCheckIcon } from '../common/icons/UserCheckIcon';
 import { UserUncheckIcon } from '../common/icons/UserUncheckIcon';
-import { useOnBeforeUnload } from '../hooks/on-before-unload';
+import { useOnBeforeUnload } from '../common/hooks';
 import { LockIcon } from '../common/icons/LockIcon';
+import { InstagramService } from '../common/services';
 
 type Tab = 'non_whitelisted' | 'whitelisted';
 
@@ -129,6 +130,8 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         };
     });
 
+    const instagramService = useMemo(() => new InstagramService(), []);
+
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     const usersForDisplay = getUsersForDisplay(
@@ -144,9 +147,8 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
 
     useEffect(() => {
         const scan = async () => {
-            const results = [...state.results];
+            const results: Node[] = [];
             let scrollCycle = 0;
-            let url = urlGenerator();
             let hasNext = true;
             let currentFollowedUsersCount = 0;
             let totalFollowedUsersCount = -1;
@@ -154,7 +156,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             while (hasNext) {
                 let receivedData: User;
                 try {
-                    receivedData = (await fetch(url).then(res => res.json())).data.user.edge_follow;
+                    receivedData = await instagramService.getNextUser();
                 } catch (e) {
                     console.error(e);
                     continue;
@@ -165,7 +167,6 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 }
 
                 hasNext = receivedData.page_info.has_next_page;
-                url = urlGenerator(receivedData.page_info.end_cursor);
                 currentFollowedUsersCount += receivedData.edges.length;
                 receivedData.edges.forEach(x => results.push(x.node));
 
@@ -190,8 +191,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         };
         scan();
         // TODO: Find a way to fix dependency array issue.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [instagramService]);
 
     const handleFilter = (field: string, currentStatus: boolean) => {
         if (state.selectedResults.length > 0) {
