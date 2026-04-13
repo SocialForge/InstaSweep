@@ -13,6 +13,7 @@ interface Filter {
 }
 
 interface LogEntry {
+    readonly position: number;
     readonly user: Node;
     readonly unfollowedSuccessfully: boolean;
 }
@@ -75,6 +76,7 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                             unfollowLog: [
                                 ...prevState.unfollowLog,
                                 {
+                                    position: counter,
                                     user,
                                     unfollowedSuccessfully: true,
                                 },
@@ -82,8 +84,8 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                         };
                         return newState;
                     });
-                } catch (e) {
-                    console.error(e);
+                } catch (error) {
+                    console.error(error);
                     setState(prevState => {
                         const newState: State = {
                             ...prevState,
@@ -91,6 +93,7 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                             unfollowLog: [
                                 ...prevState.unfollowLog,
                                 {
+                                    position: counter,
                                     user,
                                     unfollowedSuccessfully: false,
                                 },
@@ -167,7 +170,7 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                         </>
                     )}
                     {getLogForDisplay(state.unfollowLog, state.searchTerm, state.filter).map(
-                        (entry, index) =>
+                        entry =>
                             entry.unfollowedSuccessfully ? (
                                 <div className='p-medium' key={entry.user.id}>
                                     Unfollowed
@@ -180,12 +183,12 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                                         &nbsp;{entry.user.username}
                                     </a>
                                     <span className='clr-cyan'>
-                                        &nbsp; [{index + 1}/{usersToUnfollow.length}]
+                                        &nbsp; [{entry.position}/{usersToUnfollow.length}]
                                     </span>
                                 </div>
                             ) : (
                                 <div className='p-medium clr-error' key={entry.user.id}>
-                                    Failed to unfollow {entry.user.username} [{index + 1}/
+                                    Failed to unfollow {entry.user.username} [{entry.position}/
                                     {usersToUnfollow.length}]
                                 </div>
                             ),
