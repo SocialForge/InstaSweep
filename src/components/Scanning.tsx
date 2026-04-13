@@ -46,6 +46,42 @@ interface State {
 const UNFOLLOWERS_PER_PAGE = 50;
 const WHITELISTED_RESULTS_STORAGE_KEY = 'insta-sweep_whitelisted-results';
 
+function dedupeUsersById(users: readonly Node[]): readonly Node[] {
+    const seenUserIds = new Set<string>();
+    const dedupedUsers: Node[] = [];
+
+    for (const user of users) {
+        if (seenUserIds.has(user.id)) {
+            continue;
+        }
+
+        seenUserIds.add(user.id);
+        dedupedUsers.push(user);
+    }
+
+    return dedupedUsers;
+}
+
+function loadWhitelistedResults(): readonly Node[] {
+    const whitelistedResultsFromStorage = localStorage.getItem(WHITELISTED_RESULTS_STORAGE_KEY);
+    if (whitelistedResultsFromStorage === null) {
+        return [];
+    }
+
+    try {
+        const parsedWhitelistedResults: unknown = JSON.parse(whitelistedResultsFromStorage);
+        if (!Array.isArray(parsedWhitelistedResults)) {
+            return [];
+        }
+
+        return dedupeUsersById(parsedWhitelistedResults as readonly Node[]);
+    } catch (error) {
+        console.error(error);
+        localStorage.removeItem(WHITELISTED_RESULTS_STORAGE_KEY);
+        return [];
+    }
+}
+
 function getMaxPage(nonFollowersList: readonly Node[]): number {
     const pageCalc = Math.ceil(nonFollowersList.length / UNFOLLOWERS_PER_PAGE);
     return Math.max(1, pageCalc);
@@ -119,22 +155,13 @@ export function Scanning({
     readonly onUnfollow: (usersToUnfollow: readonly Node[]) => void;
 }) {
     const [state, setState] = useState<State>(() => {
-        const whitelistedResultsFromStorage: string | null = localStorage.getItem(
-            WHITELISTED_RESULTS_STORAGE_KEY,
-        );
-        const parsedWhitelistedResults: unknown =
-            whitelistedResultsFromStorage === null ? [] : JSON.parse(whitelistedResultsFromStorage);
-        const whitelistedResults: readonly Node[] = Array.isArray(parsedWhitelistedResults)
-            ? (parsedWhitelistedResults as readonly Node[])
-            : [];
-
         return {
             page: 1,
             currentTab: 'non_whitelisted',
             percentage: 0,
             results: [],
             selectedResults: [],
-            whitelistedResults,
+            whitelistedResults: loadWhitelistedResults(),
             searchBar: {
                 shown: false,
             },
@@ -163,6 +190,22 @@ export function Scanning({
     useOnBeforeUnload(isActiveProcess);
 
     const pagedUsers = getCurrentPageUnfollowers(usersForDisplay, state.page);
+
+    useEffect(() => {
+        localStorage.setItem(
+            WHITELISTED_RESULTS_STORAGE_KEY,
+            JSON.stringify(state.whitelistedResults),
+        );
+    }, [state.whitelistedResults]);
+
+    useEffect(() => {
+        const maxPage = getMaxPage(usersForDisplay);
+        if (state.page <= maxPage) {
+            return;
+        }
+
+        setState(prev => ({ ...prev, page: maxPage }));
+    }, [state.page, usersForDisplay]);
 
     useEffect(() => {
         const scan = async () => {
@@ -394,6 +437,7 @@ export function Scanning({
             const newState: State = {
                 ...prev,
                 currentTab: tab,
+                page: 1,
                 selectedResults: [],
             };
             return newState;
@@ -401,32 +445,40 @@ export function Scanning({
     }, []);
 
     const toggleUserWhitelistStatus = (user: Node) => {
-        let whitelistedResults: readonly Node[] = [];
         setState(prev => {
             switch (prev.currentTab) {
                 case 'non_whitelisted': {
-                    whitelistedResults = [...prev.whitelistedResults, user];
-                    break;
+                    return {
+                        ...prev,
+                        page: 1,
+                        selectedResults: prev.selectedResults.filter(
+                            result => result.id !== user.id,
+                        ),
+                        whitelistedResults: dedupeUsersById([...prev.whitelistedResults, user]),
+                    };
                 }
 
                 case 'whitelisted': {
-                    whitelistedResults = prev.whitelistedResults.filter(
-                        result => result.id !== user.id,
-                    );
-                    break;
+                    return {
+                        ...prev,
+                        page: 1,
+                        selectedResults: prev.selectedResults.filter(
+                            result => result.id !== user.id,
+                        ),
+                        whitelistedResults: prev.whitelistedResults.filter(
+                            result => result.id !== user.id,
+                        ),
+                    };
                 }
 
                 default: {
                     assertUnreachable(prev.currentTab);
                 }
             }
-            return { ...prev, whitelistedResults };
         });
-        localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedResults));
     };
 
     const toggleSelectedUsersWhitelistStatus = useCallback(() => {
-        let whitelistedResults: readonly Node[] = [];
         setState(prev => {
             if (prev.selectedResults.length === 0) {
                 toast.error('Must select at least a single user for this action');
@@ -435,24 +487,35 @@ export function Scanning({
 
             switch (prev.currentTab) {
                 case 'non_whitelisted': {
-                    whitelistedResults = [...prev.whitelistedResults, ...prev.selectedResults];
-                    break;
+                    return {
+                        ...prev,
+                        page: 1,
+                        selectedResults: [],
+                        whitelistedResults: dedupeUsersById([
+                            ...prev.whitelistedResults,
+                            ...prev.selectedResults,
+                        ]),
+                    };
                 }
 
                 case 'whitelisted': {
-                    whitelistedResults = prev.whitelistedResults.filter(
-                        result => !prev.selectedResults.includes(result),
-                    );
-                    break;
+                    const selectedUserIds = new Set(prev.selectedResults.map(result => result.id));
+
+                    return {
+                        ...prev,
+                        page: 1,
+                        selectedResults: [],
+                        whitelistedResults: prev.whitelistedResults.filter(
+                            result => !selectedUserIds.has(result.id),
+                        ),
+                    };
                 }
 
                 default: {
                     assertUnreachable(prev.currentTab);
                 }
             }
-            return { ...prev, whitelistedResults };
         });
-        localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedResults));
     }, []);
 
     useEffect(() => {

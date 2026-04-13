@@ -137,18 +137,20 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                     <menu className='flex column grow m-clear p-clear'>
                         <p>Filter</p>
                         <button
+                            type='button'
                             name='showSucceeded'
                             className={`filter-toggle ${state.filter.showSucceeded ? 'bg-brand' : ''}`}
-                            onChange={e =>
+                            onClick={e =>
                                 handleFilter(e.currentTarget.name, state.filter.showSucceeded)
                             }
                         >
                             Succeeded
                         </button>
                         <button
+                            type='button'
                             name='showFailed'
                             className={`filter-toggle ${state.filter.showFailed ? 'bg-brand' : ''}`}
-                            onChange={e =>
+                            onClick={e =>
                                 handleFilter(e.currentTarget.name, state.filter.showFailed)
                             }
                         >
