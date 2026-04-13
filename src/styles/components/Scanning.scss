@@ -2,6 +2,13 @@
 @use '../variables' as *;
 
 .scanning {
+    .scan-error {
+        background: rgb(84 20 20 / 35%);
+        border: 1px solid $clr-error;
+        border-radius: 8px;
+        margin: $size-medium 0;
+    }
+
     .results-container {
         @extend .grow;
         @extend .with-app-header;

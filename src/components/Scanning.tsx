@@ -38,12 +38,16 @@ interface State {
     readonly searchBar: SearchBar;
     readonly percentage: number;
     readonly results: readonly Node[];
+    readonly scanErrorMessage: string | null;
     readonly whitelistedResults: readonly Node[];
     readonly selectedResults: readonly Node[];
     readonly filter: Filter;
 }
 
 const UNFOLLOWERS_PER_PAGE = 50;
+const SCAN_FAILURE_DELAY_MS = 1500;
+const SCAN_FAILURE_RETRY_LIMIT = 3;
+const SCAN_PROGRESS_COMPLETE = 100;
 const WHITELISTED_RESULTS_STORAGE_KEY = 'insta-sweep_whitelisted-results';
 
 function dedupeUsersById(users: readonly Node[]): readonly Node[] {
@@ -93,6 +97,22 @@ function getCurrentPageUnfollowers(
 ): readonly Node[] {
     const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
     return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
+}
+
+function getScanProgressPercentage(processedUsersCount: number, totalUsersCount: number): number {
+    if (totalUsersCount <= 0) {
+        return SCAN_PROGRESS_COMPLETE;
+    }
+
+    return Math.floor((processedUsersCount / totalUsersCount) * SCAN_PROGRESS_COMPLETE);
+}
+
+function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+        return error.message;
+    }
+
+    return 'Unexpected error';
 }
 
 function getUsersForDisplay(
@@ -160,6 +180,7 @@ export function Scanning({
             currentTab: 'non_whitelisted',
             percentage: 0,
             results: [],
+            scanErrorMessage: null,
             selectedResults: [],
             whitelistedResults: loadWhitelistedResults(),
             searchBar: {
@@ -186,7 +207,7 @@ export function Scanning({
         state.filter,
     );
 
-    const isActiveProcess = state.percentage < 100;
+    const isActiveProcess = state.percentage < SCAN_PROGRESS_COMPLETE;
     useOnBeforeUnload(isActiveProcess);
 
     const pagedUsers = getCurrentPageUnfollowers(usersForDisplay, state.page);
@@ -208,21 +229,48 @@ export function Scanning({
     }, [state.page, usersForDisplay]);
 
     useEffect(() => {
+        let isCancelled = false;
+
         const scan = async () => {
             const results: Node[] = [];
+            let consecutiveFailures = 0;
             let scrollCycle = 0;
             let hasNext = true;
             let currentFollowedUsersCount = 0;
             let totalFollowedUsersCount = -1;
 
             while (hasNext) {
+                if (isCancelled) {
+                    return;
+                }
+
                 let receivedData: User;
                 try {
                     receivedData = await instagramService.getNextUser();
                 } catch (error) {
                     console.error(error);
+                    consecutiveFailures += 1;
+
+                    if (consecutiveFailures >= SCAN_FAILURE_RETRY_LIMIT) {
+                        const scanErrorMessage = `Scanning stopped after repeated request failures. ${getErrorMessage(error)}`;
+                        if (!isCancelled) {
+                            setState(prevState => ({
+                                ...prevState,
+                                percentage: SCAN_PROGRESS_COMPLETE,
+                                results,
+                                scanErrorMessage,
+                            }));
+                            toast.error(scanErrorMessage, 10000);
+                        }
+
+                        return;
+                    }
+
+                    await sleep(SCAN_FAILURE_DELAY_MS);
                     continue;
                 }
+
+                consecutiveFailures = 0;
 
                 if (totalFollowedUsersCount === -1) {
                     totalFollowedUsersCount = receivedData.count;
@@ -237,10 +285,12 @@ export function Scanning({
                 setState(prevState => {
                     const newState: State = {
                         ...prevState,
-                        percentage: Math.floor(
-                            (currentFollowedUsersCount / totalFollowedUsersCount) * 100,
+                        percentage: getScanProgressPercentage(
+                            currentFollowedUsersCount,
+                            totalFollowedUsersCount,
                         ),
                         results,
+                        scanErrorMessage: null,
                     };
                     return newState;
                 });
@@ -256,7 +306,10 @@ export function Scanning({
             }
         };
         void scan();
-        // TODO: Find a way to fix dependency array issue.
+
+        return () => {
+            isCancelled = true;
+        };
     }, [instagramService]);
 
     const handleFilter = (field: string, currentStatus: boolean) => {
@@ -654,6 +707,9 @@ export function Scanning({
 
             <section className='flex'>
                 <aside className='app-sidebar'>
+                    {state.scanErrorMessage !== null && (
+                        <div className='scan-error clr-error p-medium'>{state.scanErrorMessage}</div>
+                    )}
                     <menu className='flex column m-clear p-clear'>
                         <p>Filter</p>
                         <button
