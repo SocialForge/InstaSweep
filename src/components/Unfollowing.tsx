@@ -62,13 +62,23 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
     useOnBeforeUnload(isActiveProcess);
 
     useEffect(() => {
+        let isCancelled = false;
+
         const unfollow = async () => {
             let counter = 0;
             for (const user of usersToUnfollow) {
+                if (isCancelled) {
+                    return;
+                }
+
                 counter += 1;
                 const percentage = Math.floor((counter / usersToUnfollow.length) * 100);
                 try {
                     await instagramService.unfollow(user.id);
+                    if (isCancelled) {
+                        return;
+                    }
+
                     setState(prevState => {
                         const newState: State = {
                             ...prevState,
@@ -86,6 +96,10 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                     });
                 } catch (error) {
                     console.error(error);
+                    if (isCancelled) {
+                        return;
+                    }
+
                     setState(prevState => {
                         const newState: State = {
                             ...prevState,
@@ -103,19 +117,29 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                     });
                 }
                 // If unfollowing the last user in the list, no reason to wait.
-                if (user === usersToUnfollow[usersToUnfollow.length - 1]) {
+                if (counter === usersToUnfollow.length) {
                     break;
                 }
                 await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
+                if (isCancelled) {
+                    return;
+                }
 
                 if (counter % 5 === 0) {
                     const timeout = 5 * 60 * 1000; // 5 Minutes
                     toast.info('Sleeping 5 minutes to prevent getting temp blocked', timeout);
                     await sleep(timeout);
+                    if (isCancelled) {
+                        return;
+                    }
                 }
             }
         };
         void unfollow();
+
+        return () => {
+            isCancelled = true;
+        };
     }, [instagramService, usersToUnfollow]);
 
     const handleFilter = (field: string, currentStatus: boolean) => {
