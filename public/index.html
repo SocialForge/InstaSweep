@@ -184,15 +184,29 @@
         const TOAST_TIMEOUT_MS = 3000;
 
         async function getScript() {
-            const script = await fetch(RAW_SCRIPT_URL);
-            return await script.text();
+            const response = await fetch(RAW_SCRIPT_URL);
+            if (!response.ok) {
+                throw new Error(
+                    `Failed to load script: ${response.status} ${response.statusText}`,
+                );
+            }
+
+            return await response.text();
         }
 
         let script;
-        getScript().then(res => {
-            script = res;
-            document.getElementById('code').innerText = res;
-        });
+        getScript()
+            .then(res => {
+                script = res;
+                const codeElement = document.getElementById('code');
+                if (codeElement !== null) {
+                    codeElement.textContent = res;
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                void showToast('Failed to load the hosted script', TOAST_TIMEOUT_MS);
+            });
 
         function sleep(ms) {
             return new Promise(resolve => {
@@ -206,14 +220,24 @@
                 return;
             }
             toastElement.classList.remove('hidden');
-            toastElement.innerText = text;
+            toastElement.textContent = text;
             await sleep(timeout);
             toastElement.classList.add('hidden');
         }
 
         async function copyToClipboard() {
-            await navigator.clipboard.writeText(script);
-            showToast('Code copied!', TOAST_TIMEOUT_MS);
+            if (typeof script !== 'string') {
+                void showToast('Code is still loading', TOAST_TIMEOUT_MS);
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(script);
+                void showToast('Code copied!', TOAST_TIMEOUT_MS);
+            } catch (error) {
+                console.error(error);
+                void showToast('Clipboard access failed', TOAST_TIMEOUT_MS);
+            }
         }
     </script>
 </html>

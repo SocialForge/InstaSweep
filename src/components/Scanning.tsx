@@ -346,8 +346,13 @@ export function Scanning({
             output += user.username + '\n';
         }
 
-        await navigator.clipboard.writeText(output);
-        toast.success('User list copied to clipboard');
+        try {
+            await navigator.clipboard.writeText(output);
+            toast.success('User list copied to clipboard');
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to copy user list to clipboard');
+        }
     }, [state.selectedResults]);
 
     const isUserSelected = (user: Node): boolean => state.selectedResults.includes(user);
