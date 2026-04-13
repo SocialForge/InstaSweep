@@ -22,32 +22,33 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6.0.2
 
             # BUILD
             - name: Use node
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v6.3.0
               with:
                   cache: 'npm'
+                  node-version-file: '.nvmrc'
 
             - name: Install dependencies
-              run: npm install
+              run: npm ci
 
             - name: Build
               run: npm run build
 
             # DEPLOY
             - name: Setup Pages
-              uses: actions/configure-pages@v3
+              uses: actions/configure-pages@v6.0.0
 
             - name: Upload artifact
-              uses: actions/upload-pages-artifact@v2
+              uses: actions/upload-pages-artifact@v5.0.0
               with:
                   path: './public'
 
             - name: Deploy to GitHub Pages
               id: deployment
-              uses: actions/deploy-pages@v2
+              uses: actions/deploy-pages@v3.0.0
 
             # RELEASE
             - name: Compress public directory
@@ -55,10 +56,10 @@ jobs:
 
             - name: Get current date and time
               id: datetime
-              run: echo "::set-output name=datetime::$(date '+%Y.%m.%d_%H%M')"
+              run: echo "datetime=$(date '+%Y.%m.%d_%H%M')" >> "$GITHUB_OUTPUT"
 
             - name: Create Release
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v3.0.0
               with:
                   files: InstaSweep.zip
                   tag_name: ${{ steps.datetime.outputs.datetime }}_${{ github.sha }}
