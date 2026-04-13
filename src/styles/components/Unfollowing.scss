@@ -1,3 +1,5 @@
+@use '../helpers' as *;
+
 .unfollowing {
     .unfollow-log-container {
         @extend .grow;

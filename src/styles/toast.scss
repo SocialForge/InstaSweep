@@ -1,3 +1,6 @@
+@use './helpers' as *;
+@use './variables' as *;
+
 .is-toast {
     position: fixed;
     bottom: $size-medium;
