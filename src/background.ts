@@ -20,6 +20,25 @@ function setActiveAction(tabId: number): void {
     void chrome.action.enable(tabId);
 }
 
+function syncTabAction(tab?: chrome.tabs.Tab): void {
+    if (tab?.id === undefined) {
+        return;
+    }
+
+    if (tab.status === 'complete' && isInstagramRoute(tab.url)) {
+        setActiveAction(tab.id);
+        return;
+    }
+
+    setInactiveAction(tab.id);
+}
+
+function syncActiveTabAction(): void {
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        syncTabAction(tabs[0]);
+    });
+}
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     switch (changeInfo.status) {
         case undefined: {
@@ -45,6 +64,20 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             break;
         }
     }
+});
+
+chrome.tabs.onActivated.addListener(activeInfo => {
+    chrome.tabs.get(activeInfo.tabId, tab => {
+        syncTabAction(tab);
+    });
+});
+
+chrome.runtime.onInstalled.addListener(() => {
+    syncActiveTabAction();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+    syncActiveTabAction();
 });
 
 chrome.action.onClicked.addListener(tab => {
