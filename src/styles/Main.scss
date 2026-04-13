@@ -91,6 +91,7 @@ html {
                 @extend .fs-xlarge;
                 @extend .t-center;
                 @extend .p-small;
+
                 &-active {
                     color: inherit;
                     background: #222;

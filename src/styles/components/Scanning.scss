@@ -30,18 +30,22 @@
 
             .avatar-container {
                 position: relative;
+
                 &:hover {
                     & .avatar {
                         filter: brightness(0.25) blur(3px);
                     }
+
                     & .avatar-icon-overlay-container {
                         display: inline-block;
                     }
                 }
+
                 .avatar {
                     width: 75px;
                     border-radius: 50%;
                 }
+
                 .avatar-icon-overlay-container {
                     position: absolute;
                     top: 50%;
