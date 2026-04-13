@@ -16,7 +16,12 @@
         }
 
         .result-item {
+            background: none;
+            border: none;
             color: white;
+            cursor: pointer;
+            display: block;
+            padding: 0;
             text-align: initial;
             @extend .w-100;
 

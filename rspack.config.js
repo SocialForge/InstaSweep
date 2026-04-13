@@ -1,24 +1,21 @@
-const path = require('path');
+const path = require('node:path');
 
 module.exports = {
-    entry: './src/main.tsx',
+    devtool: false,
+    entry: {
+        background: './src/background.ts',
+        dist: './src/main.tsx',
+    },
     module: {
         rules: [
             {
-                test: /\.ts|\.tsx$/,
+                test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
             {
                 test: /\.s[ac]ss$/i,
-                use: [
-                    // Creates `style` nodes from JS strings
-                    'style-loader',
-                    // Translates CSS into CommonJS
-                    'css-loader',
-                    // Compiles Sass to CSS
-                    'sass-loader',
-                ],
+                use: ['style-loader', 'css-loader', 'sass-loader'],
             },
             {
                 test: /\.svg$/,
@@ -30,11 +27,10 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js', '.jsx'],
         alias: {
             react: 'preact/compat',
-            'react-dom': 'preact/compat',
         },
     },
     output: {
-        filename: 'dist.js',
+        filename: '[name].js',
         path: path.resolve(__dirname, 'public'),
     },
 };

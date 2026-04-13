@@ -7,19 +7,19 @@ A fully-fledged Instagram tool that allows you see who doesn't follow you back a
 
 ## Features
 
--   **Generate a list of the Instagram users you follow**
+- **Generate a list of the Instagram users you follow**
 
--   **Filter to see specific group of users. Most notably, users who do not follow you back**
+- **Filter to see specific group of users. Most notably, users who do not follow you back**
 
--   **Unfollow any of these users in bulk**
+- **Unfollow any of these users in bulk**
 
--   **Whitelist users of your choosing**
+- **Whitelist users of your choosing**
 
--   **Copy these users as a list to clipboard**
+- **Copy these users as a list to clipboard**
 
--   **Search for specific users**
+- **Search for specific users**
 
--   **Use keyboard hot-keys for extra comfort**
+- **Use keyboard hot-keys for extra comfort**
 
 ## Usage
 
@@ -75,13 +75,13 @@ If you wish to unfollow any of these users, you can select 1 or more of them by 
 
 Only relevant in "Scanning" screen.
 
--   **LEFT ARROW** - previous page
--   **RIGHT ARROW** - next page
--   **TAB** - switch tab
--   **CTRL+A** - select all users in list
--   **CTRL+S** - open search bar
--   **CTRL+C** - copy selected user list to clipboard
--   **CTRL+X** - whitelist / unwhitelist selected users
+- **LEFT ARROW** - previous page
+- **RIGHT ARROW** - next page
+- **TAB** - switch tab
+- **CTRL+A** - select all users in list
+- **CTRL+S** - open search bar
+- **CTRL+C** - copy selected user list to clipboard
+- **CTRL+X** - whitelist / unwhitelist selected users
 
 ## Dev 🔧
 
@@ -91,21 +91,23 @@ To get started, follow these steps:
 
 1. Clone the GitHub repository to your local machine
 
-2. Run `npm i` to install the required dependencies
+2. Use Node `22.22.2` (or any version supported by `.nvmrc` / `package.json` engines)
 
-3. Introduce your desired changes
+3. Run `npm ci` to install the required dependencies
 
-4. Run `npm run build` to compile your changes and update the build files
+4. Introduce your desired changes
 
-5. Submit a PR for review
+5. Run `npm run lint`, `npm run format:check`, and `npm run build`
+
+6. Submit a PR for review
 
 ## Notes 📔
 
--   **_The more users you have to check, the more time it will take_**
+- **_The more users you have to check, the more time it will take_**
 
--   **_The script has been tested only on Chromium-based browsers_**
+- **_The script has been tested only on Chromium-based browsers_**
 
--   **_The script is actively supported only on Chromium-based browsers_**
+- **_The script is actively supported only on Chromium-based browsers_**
 
 ## Legal ⚖️
 

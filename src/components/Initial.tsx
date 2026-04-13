@@ -12,13 +12,15 @@ export function Initial({ onScan }: { readonly onScan: () => void }) {
             }
         };
         document.addEventListener('keydown', onKeyDown);
-        return () => document.removeEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('keydown', onKeyDown);
+        };
     }, [onScan]);
 
     return (
         <div className='initial'>
             <AppHeader isActiveProcess={false} />
-            <button className='main-action' onClick={onScan}>
+            <button type='button' className='main-action' onClick={onScan}>
                 <strong className='main-action-text'>Click anywhere to run</strong>
             </button>
         </div>

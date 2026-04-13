@@ -12,7 +12,8 @@ export function AppHeader({
     return (
         <header className='app-header'>
             <div className='app-header-content'>
-                <div
+                <button
+                    type='button'
                     className='logo'
                     onClick={() => {
                         if (isActiveProcess) {
@@ -27,7 +28,7 @@ export function AppHeader({
                     <InstaSweepIcon />
                     &nbsp;
                     <span>InstaSweep</span>
-                </div>
+                </button>
                 <nav className='header-nav'>{children}</nav>
             </div>
         </header>

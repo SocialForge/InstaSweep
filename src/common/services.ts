@@ -1,4 +1,24 @@
-import { type User } from 'model/user';
+import { type User } from '../model/user';
+
+interface EdgeFollowResponse {
+    readonly data: {
+        readonly user: {
+            readonly edge_follow: User;
+        };
+    };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+}
+
+function isEdgeFollowResponse(value: unknown): value is EdgeFollowResponse {
+    if (!isRecord(value) || !isRecord(value.data) || !isRecord(value.data.user)) {
+        return false;
+    }
+
+    return 'edge_follow' in value.data.user;
+}
 
 export class InstagramService {
     private nextUrlCode: string | undefined = undefined;
@@ -40,7 +60,11 @@ export class InstagramService {
     async getNextUser(): Promise<User> {
         const nextUrl = this.getNextUrl(this.nextUrlCode);
         const res = await fetch(nextUrl);
-        const result = await res.json();
+        const result: unknown = await res.json();
+        if (!isEdgeFollowResponse(result)) {
+            throw new Error('Unexpected Instagram response payload');
+        }
+
         const user: User = result.data.user.edge_follow;
         this.nextUrlCode = user.page_info.end_cursor;
         return user;

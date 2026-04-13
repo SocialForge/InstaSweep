@@ -1,16 +1,12 @@
 import React, { type ReactNode, useState } from 'react';
-// `ReactDOM.render` was replaced with `createRoot` API.
-// But currently Preact lacks relevant TS types.
-// TODO: Remove comment and swap them once they are added.
-// eslint-disable-next-line react/no-deprecated
-import { render } from 'react-dom';
+import { render } from 'preact';
 import './styles.scss';
 
 import { assertUnreachable } from './common/utils';
 import { Initial } from './components/Initial';
 import { Scanning } from './components/Scanning';
 import { Unfollowing } from './components/Unfollowing';
-import type { Node } from 'model/user';
+import type { Node } from './model/user';
 
 const INSTAGRAM_HOSTNAME = 'www.instagram.com';
 
@@ -28,11 +24,23 @@ function App() {
     let markup: ReactNode;
     switch (state.status) {
         case 'initial':
-            markup = <Initial onScan={() => setState({ status: 'scanning' })} />;
+            markup = (
+                <Initial
+                    onScan={() => {
+                        setState({ status: 'scanning' });
+                    }}
+                />
+            );
             break;
 
         case 'scanning':
-            markup = <Scanning onUnfollow={usersToUnfollow => setState({ status: 'unfollowing', usersToUnfollow })} />;
+            markup = (
+                <Scanning
+                    onUnfollow={usersToUnfollow => {
+                        setState({ status: 'unfollowing', usersToUnfollow });
+                    }}
+                />
+            );
             break;
 
         case 'unfollowing':
@@ -54,6 +62,6 @@ if (location.hostname !== INSTAGRAM_HOSTNAME) {
     alert('Can be used only on Instagram routes');
 } else {
     document.title = 'InstaSweep';
-    document.body.innerHTML = '';
+    document.body.replaceChildren();
     render(<App />, document.body);
 }

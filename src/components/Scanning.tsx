@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppHeader } from './AppHeader';
 import { assertUnreachable, sleep } from '../common/utils';
 import { toast } from '../common/toast';
-import type { Node, User } from 'model/user';
+import type { Node, User } from '../model/user';
 import { CopyIcon } from '../common/icons/CopyIcon';
 import { SearchIcon } from '../common/icons/SearchIcon';
 import { CheckSquareIcon } from '../common/icons/CheckSquareIcon';
@@ -48,10 +48,13 @@ const WHITELISTED_RESULTS_STORAGE_KEY = 'insta-sweep_whitelisted-results';
 
 function getMaxPage(nonFollowersList: readonly Node[]): number {
     const pageCalc = Math.ceil(nonFollowersList.length / UNFOLLOWERS_PER_PAGE);
-    return pageCalc < 1 ? 1 : pageCalc;
+    return Math.max(1, pageCalc);
 }
 
-function getCurrentPageUnfollowers(nonFollowersList: readonly Node[], currentPage: number): readonly Node[] {
+function getCurrentPageUnfollowers(
+    nonFollowersList: readonly Node[],
+    currentPage: number,
+): readonly Node[] {
     const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
     return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
 }
@@ -65,20 +68,25 @@ function getUsersForDisplay(
 ): readonly Node[] {
     const users: Node[] = [];
     for (const result of results) {
-        const isWhitelisted = whitelistedResults.find(user => user.id === result.id) !== undefined;
+        const isWhitelisted = whitelistedResults.some(user => user.id === result.id);
         switch (currentTab) {
-            case 'non_whitelisted':
+            case 'non_whitelisted': {
                 if (isWhitelisted) {
                     continue;
                 }
                 break;
-            case 'whitelisted':
+            }
+
+            case 'whitelisted': {
                 if (!isWhitelisted) {
                     continue;
                 }
                 break;
-            default:
+            }
+
+            default: {
                 assertUnreachable(currentTab);
+            }
         }
         if (!filter.showPrivate && result.is_private) {
             continue;
@@ -105,11 +113,20 @@ function getUsersForDisplay(
     return users;
 }
 
-export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow: readonly Node[]) => void }) {
+export function Scanning({
+    onUnfollow,
+}: {
+    readonly onUnfollow: (usersToUnfollow: readonly Node[]) => void;
+}) {
     const [state, setState] = useState<State>(() => {
-        const whitelistedResultsFromStorage: string | null = localStorage.getItem(WHITELISTED_RESULTS_STORAGE_KEY);
-        const whitelistedResults: readonly Node[] =
+        const whitelistedResultsFromStorage: string | null = localStorage.getItem(
+            WHITELISTED_RESULTS_STORAGE_KEY,
+        );
+        const parsedWhitelistedResults: unknown =
             whitelistedResultsFromStorage === null ? [] : JSON.parse(whitelistedResultsFromStorage);
+        const whitelistedResults: readonly Node[] = Array.isArray(parsedWhitelistedResults)
+            ? (parsedWhitelistedResults as readonly Node[])
+            : [];
 
         return {
             page: 1,
@@ -145,6 +162,8 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
     const isActiveProcess = state.percentage < 100;
     useOnBeforeUnload(isActiveProcess);
 
+    const pagedUsers = getCurrentPageUnfollowers(usersForDisplay, state.page);
+
     useEffect(() => {
         const scan = async () => {
             const results: Node[] = [];
@@ -157,8 +176,8 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 let receivedData: User;
                 try {
                     receivedData = await instagramService.getNextUser();
-                } catch (e) {
-                    console.error(e);
+                } catch (error) {
+                    console.error(error);
                     continue;
                 }
 
@@ -168,12 +187,16 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
 
                 hasNext = receivedData.page_info.has_next_page;
                 currentFollowedUsersCount += receivedData.edges.length;
-                receivedData.edges.forEach(x => results.push(x.node));
+                for (const edge of receivedData.edges) {
+                    results.push(edge.node);
+                }
 
                 setState(prevState => {
                     const newState: State = {
                         ...prevState,
-                        percentage: Math.floor((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
+                        percentage: Math.floor(
+                            (currentFollowedUsersCount / totalFollowedUsersCount) * 100,
+                        ),
                         results,
                     };
                     return newState;
@@ -189,15 +212,16 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 }
             }
         };
-        scan();
+        void scan();
         // TODO: Find a way to fix dependency array issue.
     }, [instagramService]);
 
     const handleFilter = (field: string, currentStatus: boolean) => {
-        if (state.selectedResults.length > 0) {
-            if (!confirm('Changing filter options will clear selected users')) {
-                return;
-            }
+        if (
+            state.selectedResults.length > 0 &&
+            !confirm('Changing filter options will clear selected users')
+        ) {
+            return;
         }
         setState({
             ...state,
@@ -217,18 +241,20 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             toast.error('Must select at least a single user for this action');
             return;
         }
-        const sortedResults = [...state.selectedResults].sort((a, b) => (a.username > b.username ? 1 : -1));
+        const sortedResults = [...state.selectedResults].sort((a, b) =>
+            a.username > b.username ? 1 : -1,
+        );
 
         let output = '';
-        sortedResults.forEach(user => {
+        for (const user of sortedResults) {
             output += user.username + '\n';
-        });
+        }
 
         await navigator.clipboard.writeText(output);
         toast.success('User list copied to clipboard');
     }, [state.selectedResults]);
 
-    const isUserSelected = (user: Node): boolean => state.selectedResults.indexOf(user) !== -1;
+    const isUserSelected = (user: Node): boolean => state.selectedResults.includes(user);
 
     const toggleUser = (user: Node) => {
         if (isUserSelected(user)) {
@@ -275,18 +301,21 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             return;
         }
         const allDisplayedUsersThatStartWithLetter = usersForDisplay.filter(result => {
-            const userFirstLetter = result.username.substring(0, 1).toUpperCase();
+            const userFirstLetter = result.username.slice(0, 1).toUpperCase();
             return userFirstLetter === letter.toUpperCase();
         });
         const allSelectedUsersThatStartWithLetter = state.selectedResults.filter(result => {
-            const userFirstLetter = result.username.substring(0, 1).toUpperCase();
+            const userFirstLetter = result.username.slice(0, 1).toUpperCase();
             return userFirstLetter === letter.toUpperCase();
         });
-        if (allDisplayedUsersThatStartWithLetter.length === allSelectedUsersThatStartWithLetter.length) {
+        if (
+            allDisplayedUsersThatStartWithLetter.length ===
+            allSelectedUsersThatStartWithLetter.length
+        ) {
             setState({
                 ...state,
                 selectedResults: state.selectedResults.filter(
-                    user => allSelectedUsersThatStartWithLetter.indexOf(user) === -1,
+                    user => !allSelectedUsersThatStartWithLetter.includes(user),
                 ),
             });
             return;
@@ -296,7 +325,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             ...allDisplayedUsersThatStartWithLetter.filter(
                 result =>
                     // Avoid duplicates
-                    state.selectedResults.indexOf(result) === -1,
+                    !state.selectedResults.includes(result),
             ),
         ];
         setState({ ...state, selectedResults });
@@ -304,17 +333,14 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
 
     const toggleSearchBar = useCallback(() => {
         setState(prev => {
-            let searchBar: SearchBar;
-            if (prev.searchBar.shown) {
-                searchBar = {
-                    shown: false,
-                };
-            } else {
-                searchBar = {
-                    shown: true,
-                    text: '',
-                };
-            }
+            const searchBar: SearchBar = prev.searchBar.shown
+                ? {
+                      shown: false,
+                  }
+                : {
+                      shown: true,
+                      text: '',
+                  };
             const newState: State = {
                 ...prev,
                 searchBar,
@@ -350,8 +376,9 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                         break;
                     }
 
-                    default:
+                    default: {
                         assertUnreachable(direction);
+                    }
                 }
                 return newState;
             });
@@ -377,16 +404,21 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
         let whitelistedResults: readonly Node[] = [];
         setState(prev => {
             switch (prev.currentTab) {
-                case 'non_whitelisted':
+                case 'non_whitelisted': {
                     whitelistedResults = [...prev.whitelistedResults, user];
                     break;
+                }
 
-                case 'whitelisted':
-                    whitelistedResults = prev.whitelistedResults.filter(result => result.id !== user.id);
+                case 'whitelisted': {
+                    whitelistedResults = prev.whitelistedResults.filter(
+                        result => result.id !== user.id,
+                    );
                     break;
+                }
 
-                default:
+                default: {
                     assertUnreachable(prev.currentTab);
+                }
             }
             return { ...prev, whitelistedResults };
         });
@@ -402,37 +434,26 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             }
 
             switch (prev.currentTab) {
-                case 'non_whitelisted':
+                case 'non_whitelisted': {
                     whitelistedResults = [...prev.whitelistedResults, ...prev.selectedResults];
                     break;
+                }
 
-                case 'whitelisted':
+                case 'whitelisted': {
                     whitelistedResults = prev.whitelistedResults.filter(
-                        result => prev.selectedResults.indexOf(result) === -1,
+                        result => !prev.selectedResults.includes(result),
                     );
                     break;
+                }
 
-                default:
+                default: {
                     assertUnreachable(prev.currentTab);
+                }
             }
             return { ...prev, whitelistedResults };
         });
         localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedResults));
     }, []);
-
-    let currentLetter = '';
-    const onNewLetter = (firstLetter: string) => {
-        currentLetter = firstLetter;
-        return (
-            <button
-                className='alphabet-character'
-                title={`Select all users that start with "${currentLetter}"`}
-                onClick={e => toggleAllUsersThatStartWithLetter(e.currentTarget.innerText)}
-            >
-                {currentLetter}
-            </button>
-        );
-    };
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
@@ -447,14 +468,19 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             if (e.key === 'Tab') {
                 e.preventDefault();
                 switch (state.currentTab) {
-                    case 'non_whitelisted':
+                    case 'non_whitelisted': {
                         changeTab('whitelisted');
                         break;
-                    case 'whitelisted':
+                    }
+
+                    case 'whitelisted': {
                         changeTab('non_whitelisted');
                         break;
-                    default:
+                    }
+
+                    default: {
                         assertUnreachable(state.currentTab);
+                    }
                 }
             }
             if (e.ctrlKey && e.key === 'a' && !state.searchBar.shown) {
@@ -463,7 +489,7 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
             }
             if (e.ctrlKey && e.key === 'c' && !state.searchBar.shown) {
                 e.preventDefault();
-                copyListToClipboard();
+                void copyListToClipboard();
             }
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
@@ -495,17 +521,23 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
 
     let whitelistButtonMarkup: React.JSX.Element;
     switch (state.currentTab) {
-        case 'non_whitelisted':
+        case 'non_whitelisted': {
             whitelistButtonMarkup = (
-                <button title='Add selected users to whitelist (CTRL+X)' onClick={toggleSelectedUsersWhitelistStatus}>
+                <button
+                    type='button'
+                    title='Add selected users to whitelist (CTRL+X)'
+                    onClick={toggleSelectedUsersWhitelistStatus}
+                >
                     <UserCheckIcon size={2} />
                 </button>
             );
             break;
+        }
 
-        case 'whitelisted':
+        case 'whitelisted': {
             whitelistButtonMarkup = (
                 <button
+                    type='button'
                     title='Remove selected users from whitelist (CTRL+X)'
                     onClick={toggleSelectedUsersWhitelistStatus}
                 >
@@ -513,16 +545,18 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 </button>
             );
             break;
+        }
 
-        default:
+        default: {
             assertUnreachable(state.currentTab);
+        }
     }
 
     return (
         <div className='scanning'>
             <AppHeader isActiveProcess={isActiveProcess}>
                 {whitelistButtonMarkup}
-                <button title='Copy user list (CTRL+C)' onClick={copyListToClipboard}>
+                <button type='button' title='Copy user list (CTRL+C)' onClick={copyListToClipboard}>
                     <CopyIcon size={2} />
                 </button>
                 <input
@@ -544,14 +578,16 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                         });
                     }}
                 />
-                <button title='Search user list (CTRL+S)' onClick={toggleSearchBar}>
+                <button type='button' title='Search user list (CTRL+S)' onClick={toggleSearchBar}>
                     <SearchIcon size={2} />
                 </button>
-                <button title='Select all (CTRL+A)' onClick={toggleAllUsers}>
+                <button type='button' title='Select all (CTRL+A)' onClick={toggleAllUsers}>
                     {isAllUsersSelected() ? <CheckSquareIcon size={2} /> : <SquareIcon size={2} />}
                 </button>
             </AppHeader>
-            {isActiveProcess && <progress className='progressbar' value={state.percentage} max='100' />}
+            {isActiveProcess && (
+                <progress className='progressbar' value={state.percentage} max='100' />
+            )}
 
             <section className='flex'>
                 <aside className='app-sidebar'>
@@ -559,28 +595,36 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                         <p>Filter</p>
                         <button
                             name='showNonFollowers'
-                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showNonFollowers)}
+                            onClick={e =>
+                                handleFilter(e.currentTarget.name, state.filter.showNonFollowers)
+                            }
                             className={`filter-toggle ${state.filter.showNonFollowers ? 'bg-brand' : ''}`}
                         >
                             Non-Followers
                         </button>
                         <button
                             name='showFollowers'
-                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showFollowers)}
+                            onClick={e =>
+                                handleFilter(e.currentTarget.name, state.filter.showFollowers)
+                            }
                             className={`filter-toggle ${state.filter.showFollowers ? 'bg-brand' : ''}`}
                         >
                             Followers
                         </button>
                         <button
                             name='showVerified'
-                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showVerified)}
+                            onClick={e =>
+                                handleFilter(e.currentTarget.name, state.filter.showVerified)
+                            }
                             className={`filter-toggle ${state.filter.showVerified ? 'bg-brand' : ''}`}
                         >
                             Verified
                         </button>
                         <button
                             name='showPrivate'
-                            onClick={e => handleFilter(e.currentTarget.name, state.filter.showPrivate)}
+                            onClick={e =>
+                                handleFilter(e.currentTarget.name, state.filter.showPrivate)
+                            }
                             className={`filter-toggle ${state.filter.showPrivate ? 'bg-brand' : ''}`}
                         >
                             Private
@@ -593,23 +637,30 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
 
                     <div className='grow t-center'>
                         <p>Pages</p>
-                        <a
+                        <button
+                            type='button'
                             title='Previous page (Left arrow)'
                             onClick={() => changePage('backwards')}
                             className='p-medium'
                         >
                             ❮
-                        </a>
+                        </button>
                         <span>
                             {state.page}
                             &nbsp;/&nbsp;
                             {getMaxPage(usersForDisplay)}
                         </span>
-                        <a title='Next page (Right arrow)' onClick={() => changePage('forwards')} className='p-medium'>
+                        <button
+                            type='button'
+                            title='Next page (Right arrow)'
+                            onClick={() => changePage('forwards')}
+                            className='p-medium'
+                        >
                             ❯
-                        </a>
+                        </button>
                     </div>
                     <button
+                        type='button'
                         className='unfollow-action'
                         onClick={() => {
                             if (!confirm('Are you sure?')) {
@@ -627,32 +678,76 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                 </aside>
                 <article className='results-container'>
                     <nav className='tabs-container'>
-                        <div
+                        <button
+                            type='button'
                             className={`tab ${state.currentTab === 'non_whitelisted' ? 'tab-active' : ''}`}
                             title='Non-whitelisted tab (TAB)'
                             onClick={() => changeTab('non_whitelisted')}
                         >
                             Non-Whitelisted
-                        </div>
-                        <div
+                        </button>
+                        <button
+                            type='button'
                             className={`tab ${state.currentTab === 'whitelisted' ? 'tab-active' : ''}`}
                             title='Whitelisted tab (TAB)'
                             onClick={() => changeTab('whitelisted')}
                         >
                             Whitelisted
-                        </div>
+                        </button>
                     </nav>
-                    {getCurrentPageUnfollowers(usersForDisplay, state.page).map(user => {
-                        const firstLetter = user.username.substring(0, 1).toUpperCase();
+                    {pagedUsers.map((user, index) => {
+                        const firstLetter = user.username.slice(0, 1).toUpperCase();
+                        const previousUser = pagedUsers[index - 1];
+                        const previousFirstLetter =
+                            previousUser === undefined
+                                ? ''
+                                : previousUser.username.slice(0, 1).toUpperCase();
+                        const shouldRenderLetter = previousFirstLetter !== firstLetter;
+
                         return (
-                            <>
-                                {firstLetter !== currentLetter && onNewLetter(firstLetter)}
-                                <button
+                            <React.Fragment key={user.id}>
+                                {shouldRenderLetter && (
+                                    <button
+                                        type='button'
+                                        className='alphabet-character'
+                                        title={`Select all users that start with "${firstLetter}"`}
+                                        onClick={() =>
+                                            toggleAllUsersThatStartWithLetter(firstLetter)
+                                        }
+                                    >
+                                        {firstLetter}
+                                    </button>
+                                )}
+                                <div
+                                    aria-pressed={isUserSelected(user)}
                                     className={`result-item ${isUserSelected(user) ? 'bg-brand' : ''}`}
+                                    role='button'
+                                    tabIndex={0}
                                     onClick={() => toggleUser(user)}
+                                    onKeyDown={event => {
+                                        if (event.target !== event.currentTarget) {
+                                            return;
+                                        }
+
+                                        if (event.key === 'Enter' || event.key === ' ') {
+                                            event.preventDefault();
+                                            toggleUser(user);
+                                        }
+                                    }}
                                 >
                                     <div className='flex align-center m-medium'>
-                                        <div
+                                        <button
+                                            type='button'
+                                            title={
+                                                state.currentTab === 'non_whitelisted'
+                                                    ? 'Add to whitelist'
+                                                    : 'Remove from whitelist'
+                                            }
+                                            aria-label={
+                                                state.currentTab === 'non_whitelisted'
+                                                    ? `Add ${user.username} to whitelist`
+                                                    : `Remove ${user.username} from whitelist`
+                                            }
                                             className='avatar-container'
                                             onClick={e => {
                                                 // Prevent selecting result when trying to add to whitelist.
@@ -661,25 +756,30 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                                                 toggleUserWhitelistStatus(user);
                                             }}
                                         >
-                                            <img className='avatar' alt={user.username} src={user.profile_pic_url} />
+                                            <img
+                                                className='avatar'
+                                                alt={user.username}
+                                                src={user.profile_pic_url}
+                                            />
                                             <span className='avatar-icon-overlay-container'>
                                                 {state.currentTab === 'non_whitelisted' ? (
-                                                    <span title='Add to whitelist'>
+                                                    <span>
                                                         <UserCheckIcon size={2} />
                                                     </span>
                                                 ) : (
-                                                    <span title='Remove from whitelist'>
+                                                    <span>
                                                         <UserUncheckIcon size={2} />
                                                     </span>
                                                 )}
                                             </span>
-                                        </div>
+                                        </button>
                                         <div className='flex column m-medium'>
                                             <a
                                                 className='fs-xlarge'
                                                 target='_blank'
                                                 href={`../${user.username}`}
                                                 rel='noreferrer'
+                                                onClick={event => event.stopPropagation()}
                                             >
                                                 {user.username}
                                             </a>
@@ -702,7 +802,9 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                                                 {user.follows_viewer ? (
                                                     <span className='fs-medium clr-success'>✔</span>
                                                 ) : (
-                                                    <span className='fs-medium clr-error'>&#120;</span>
+                                                    <span className='fs-medium clr-error'>
+                                                        &#120;
+                                                    </span>
                                                 )}
                                             </div>
                                             <div>
@@ -710,13 +812,15 @@ export function Scanning({ onUnfollow }: { readonly onUnfollow: (usersToUnfollow
                                                 {user.followed_by_viewer ? (
                                                     <span className='fs-medium clr-success'>✔</span>
                                                 ) : (
-                                                    <span className='fs-medium clr-error'>&#120;</span>
+                                                    <span className='fs-medium clr-error'>
+                                                        &#120;
+                                                    </span>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
-                                </button>
-                            </>
+                                </div>
+                            </React.Fragment>
                         );
                     })}
                 </article>

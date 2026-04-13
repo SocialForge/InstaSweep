@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AppHeader } from './AppHeader';
 import { sleep } from '../common/utils';
 import { toast } from '../common/toast';
-import type { Node } from 'model/user';
+import type { Node } from '../model/user';
 import { useOnBeforeUnload } from '../common/hooks';
 import { InstagramService } from '../common/services';
 
@@ -33,7 +33,9 @@ function getLogForDisplay(log: readonly LogEntry[], searchTerm: string, filter: 
         if (!filter.showFailed && !entry.unfollowedSuccessfully) {
             continue;
         }
-        const userMatchesSearchTerm = entry.user.username.toLowerCase().includes(searchTerm.toLowerCase());
+        const userMatchesSearchTerm = entry.user.username
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
         if (searchTerm !== '' && !userMatchesSearchTerm) {
             continue;
         }
@@ -110,7 +112,7 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                 }
             }
         };
-        unfollow();
+        void unfollow();
     }, [instagramService, usersToUnfollow]);
 
     const handleFilter = (field: string, currentStatus: boolean) => {
@@ -126,7 +128,9 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
     return (
         <div className='unfollowing'>
             <AppHeader isActiveProcess={isActiveProcess} />
-            {isActiveProcess && <progress className='progressbar' value={state.percentage} max='100' />}
+            {isActiveProcess && (
+                <progress className='progressbar' value={state.percentage} max='100' />
+            )}
 
             <section className='flex'>
                 <aside className='app-sidebar'>
@@ -135,14 +139,18 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                         <button
                             name='showSucceeded'
                             className={`filter-toggle ${state.filter.showSucceeded ? 'bg-brand' : ''}`}
-                            onChange={e => handleFilter(e.currentTarget.name, state.filter.showSucceeded)}
+                            onChange={e =>
+                                handleFilter(e.currentTarget.name, state.filter.showSucceeded)
+                            }
                         >
                             Succeeded
                         </button>
                         <button
                             name='showFailed'
                             className={`filter-toggle ${state.filter.showFailed ? 'bg-brand' : ''}`}
-                            onChange={e => handleFilter(e.currentTarget.name, state.filter.showFailed)}
+                            onChange={e =>
+                                handleFilter(e.currentTarget.name, state.filter.showFailed)
+                            }
                         >
                             Failed
                         </button>
@@ -156,27 +164,29 @@ export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: rea
                             <hr />
                         </>
                     )}
-                    {getLogForDisplay(state.unfollowLog, state.searchTerm, state.filter).map((entry, index) =>
-                        entry.unfollowedSuccessfully ? (
-                            <div className='p-medium' key={entry.user.id}>
-                                Unfollowed
-                                <a
-                                    className='clr-inherit'
-                                    target='_blank'
-                                    href={`../${entry.user.username}`}
-                                    rel='noreferrer'
-                                >
-                                    &nbsp;{entry.user.username}
-                                </a>
-                                <span className='clr-cyan'>
-                                    &nbsp; [{index + 1}/{usersToUnfollow.length}]
-                                </span>
-                            </div>
-                        ) : (
-                            <div className='p-medium clr-error' key={entry.user.id}>
-                                Failed to unfollow {entry.user.username} [{index + 1}/{usersToUnfollow.length}]
-                            </div>
-                        ),
+                    {getLogForDisplay(state.unfollowLog, state.searchTerm, state.filter).map(
+                        (entry, index) =>
+                            entry.unfollowedSuccessfully ? (
+                                <div className='p-medium' key={entry.user.id}>
+                                    Unfollowed
+                                    <a
+                                        className='clr-inherit'
+                                        target='_blank'
+                                        href={`../${entry.user.username}`}
+                                        rel='noreferrer'
+                                    >
+                                        &nbsp;{entry.user.username}
+                                    </a>
+                                    <span className='clr-cyan'>
+                                        &nbsp; [{index + 1}/{usersToUnfollow.length}]
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className='p-medium clr-error' key={entry.user.id}>
+                                    Failed to unfollow {entry.user.username} [{index + 1}/
+                                    {usersToUnfollow.length}]
+                                </div>
+                            ),
                     )}
                 </article>
             </section>

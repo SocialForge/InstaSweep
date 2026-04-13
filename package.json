@@ -1,36 +1,35 @@
 {
+    "name": "insta-sweep",
+    "version": "1.1.0",
+    "private": true,
     "scripts": {
-        "webpack-build": "webpack --mode production",
-        "build": "npm run webpack-build",
-        "lint": "npx eslint ./src",
-        "watch": "webpack --watch"
-    },
-    "babel": {
-        "plugins": [
-            "@babel/plugin-transform-react-jsx"
-        ]
-    },
-    "devDependencies": {
-        "@babel/cli": "^7.23.0",
-        "@babel/core": "^7.23.2",
-        "@babel/plugin-transform-react-jsx": "^7.22.15",
-        "@typescript-eslint/eslint-plugin": "^6.9.0",
-        "@typescript-eslint/parser": "^6.9.0",
-        "chrome-types": "^0.1.238",
-        "css-loader": "^6.8.1",
-        "eslint": "^8.52.0",
-        "eslint-plugin-react": "^7.33.2",
-        "eslint-plugin-react-hooks": "^4.6.0",
-        "sass": "^1.69.5",
-        "sass-loader": "^13.3.2",
-        "style-loader": "^3.3.3",
-        "svg-inline-loader": "^0.8.2",
-        "ts-loader": "^9.5.0",
-        "typescript": "^5.2.2",
-        "webpack": "^5.89.0",
-        "webpack-cli": "^5.1.4"
+        "build": "rspack build --mode production",
+        "format": "oxfmt --write .",
+        "format:check": "oxfmt --check .",
+        "lint": "oxlint .",
+        "lint:fix": "oxlint --fix .",
+        "typecheck": "tsc --noEmit",
+        "watch": "rspack build --mode development --watch"
     },
     "dependencies": {
-        "preact": "^10.18.1"
+        "preact": "^10.29.1"
+    },
+    "devDependencies": {
+        "@rspack/cli": "^1.7.11",
+        "@rspack/core": "^1.7.11",
+        "chrome-types": "^0.1.425",
+        "css-loader": "^7.1.4",
+        "oxfmt": "^0.45.0",
+        "oxlint": "^1.60.0",
+        "oxlint-tsgolint": "^0.20.0",
+        "sass": "^1.99.0",
+        "sass-loader": "^16.0.7",
+        "style-loader": "^4.0.0",
+        "svg-inline-loader": "^0.8.2",
+        "ts-loader": "^9.5.7",
+        "typescript": "^6.0.2"
+    },
+    "engines": {
+        "node": "^20.19.0 || >=22.12.0"
     }
 }

@@ -7,6 +7,8 @@ export function createIcon(svgString: string) {
             ref.current!.style.fontSize = `${size}em`;
         }, [size]);
 
-        return <span ref={ref} dangerouslySetInnerHTML={{ __html: svgString }} className='is-icon' />;
+        return (
+            <span ref={ref} dangerouslySetInnerHTML={{ __html: svgString }} className='is-icon' />
+        );
     };
 }
