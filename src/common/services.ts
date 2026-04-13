@@ -20,6 +20,11 @@ function isEdgeFollowResponse(value: unknown): value is EdgeFollowResponse {
     return 'edge_follow' in value.data.user;
 }
 
+function getResponseErrorMessage(action: string, response: Response): string {
+    const statusText = response.statusText === '' ? 'Request failed' : response.statusText;
+    return `${action} failed: ${response.status} ${statusText}`;
+}
+
 export class InstagramService {
     private nextUrlCode: string | undefined = undefined;
 
@@ -29,7 +34,22 @@ export class InstagramService {
         if (parts.length !== 2) {
             return null;
         }
-        return parts.pop()!.split(';').shift()!;
+
+        const cookieValue = parts[1]?.split(';')[0];
+        if (cookieValue === undefined || cookieValue === '') {
+            return null;
+        }
+
+        return cookieValue;
+    }
+
+    private getRequiredCookie(name: string): string {
+        const cookieValue = this.getCookie(name);
+        if (cookieValue === null) {
+            throw new Error(`${name} cookie is missing`);
+        }
+
+        return cookieValue;
     }
 
     private getUnfollowUrl(idToUnfollow: string): string {
@@ -49,17 +69,21 @@ export class InstagramService {
     // }
 
     private getNextUrl(nextUrlCode?: string): string {
-        const ds_user_id = this.getCookie('ds_user_id');
+        const dsUserId = this.getRequiredCookie('ds_user_id');
         if (nextUrlCode === undefined) {
             // First url
-            return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
+            return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${dsUserId}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
         }
-        return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24","after":"${nextUrlCode}"}`;
+        return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${dsUserId}","include_reel":"true","fetch_mutual":"false","first":"24","after":"${nextUrlCode}"}`;
     }
 
     async getNextUser(): Promise<User> {
         const nextUrl = this.getNextUrl(this.nextUrlCode);
         const res = await fetch(nextUrl);
+        if (!res.ok) {
+            throw new Error(getResponseErrorMessage('Follower scan request', res));
+        }
+
         const result: unknown = await res.json();
         if (!isEdgeFollowResponse(result)) {
             throw new Error('Unexpected Instagram response payload');
@@ -70,13 +94,9 @@ export class InstagramService {
         return user;
     }
 
-    unfollow(userId: string): Promise<Response> {
-        const csrfToken = this.getCookie('csrftoken');
-        if (csrfToken === null) {
-            throw new Error('csrftoken cookie is null');
-        }
-
-        return fetch(this.getUnfollowUrl(userId), {
+    async unfollow(userId: string): Promise<Response> {
+        const csrfToken = this.getRequiredCookie('csrftoken');
+        const response = await fetch(this.getUnfollowUrl(userId), {
             headers: {
                 'content-type': 'application/x-www-form-urlencoded',
                 'x-csrftoken': csrfToken,
@@ -85,5 +105,11 @@ export class InstagramService {
             mode: 'cors',
             credentials: 'include',
         });
+
+        if (!response.ok) {
+            throw new Error(getResponseErrorMessage('Unfollow request', response));
+        }
+
+        return response;
     }
 }
