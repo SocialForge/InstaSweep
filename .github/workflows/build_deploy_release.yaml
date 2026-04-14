@@ -6,20 +6,15 @@ on:
     workflow_dispatch:
 
 concurrency:
-    group: 'pages'
-    cancel-in-progress: false
+    group: 'pages-${{ github.ref }}'
+    cancel-in-progress: true
 
 permissions:
-    contents: write
-    pages: write
-    id-token: write
+    contents: read
 
 jobs:
-    update_and_deploy:
+    build:
         runs-on: ubuntu-latest
-
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         steps:
             - uses: actions/checkout@v6.0.2
@@ -45,18 +40,50 @@ jobs:
             - name: Build
               run: npm run build
 
-            # DEPLOY
-            - name: Setup Pages
-              uses: actions/configure-pages@v6.0.0
-
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v5.0.0
               with:
                   path: './public'
 
+    deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            pages: write
+            id-token: write
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+
+        steps:
+            # DEPLOY
+            - name: Setup Pages
+              uses: actions/configure-pages@v6.0.0
+
             - name: Deploy to GitHub Pages
               id: deployment
               uses: actions/deploy-pages@v3.0.0
+
+    release:
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - uses: actions/checkout@v6.0.2
+
+            # BUILD
+            - name: Use node
+              uses: actions/setup-node@v6.3.0
+              with:
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build
+              run: npm run build
 
             # RELEASE
             - name: Compress public directory
