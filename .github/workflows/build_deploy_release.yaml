@@ -4,6 +4,12 @@ on:
         branches:
             - master
     workflow_dispatch:
+        inputs:
+            create_release:
+                description: 'Create a GitHub release with the built public bundle'
+                required: false
+                type: boolean
+                default: false
 
 concurrency:
     group: 'pages-${{ github.ref }}'
@@ -65,6 +71,7 @@ jobs:
               uses: actions/deploy-pages@v3.0.0
 
     release:
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
         needs: build
         runs-on: ubuntu-latest
         permissions:
@@ -89,15 +96,18 @@ jobs:
             - name: Compress public directory
               run: zip -r InstaSweep.zip public/
 
-            - name: Get current date and time
-              id: datetime
-              run: echo "datetime=$(date '+%Y.%m.%d_%H%M')" >> "$GITHUB_OUTPUT"
+            - name: Get release metadata
+              id: release_metadata
+              run: |
+                  echo "datetime=$(date '+%Y.%m.%d_%H%M')" >> "$GITHUB_OUTPUT"
+                  echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
 
             - name: Create Release
               uses: softprops/action-gh-release@v3.0.0
               with:
                   files: InstaSweep.zip
-                  tag_name: ${{ steps.datetime.outputs.datetime }}_${{ github.sha }}
-                  body: Release notes
+                  tag_name: v${{ steps.release_metadata.outputs.version }}-${{ steps.release_metadata.outputs.datetime }}
+                  name: InstaSweep v${{ steps.release_metadata.outputs.version }} (${{ steps.release_metadata.outputs.datetime }})
+                  generate_release_notes: true
                   draft: false
                   prerelease: false
