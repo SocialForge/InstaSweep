@@ -2,7 +2,6 @@
 
 ## Repo Rules
 
-- Use the Node version defined in `.nvmrc` and `package.json` engines. The current baseline is Node `22.22.2`.
 - Keep both delivery modes working: the hosted copy/paste script and the Chromium extension.
 - Treat `src/` as the source of truth. `public/dist.js` and `public/background.js` are generated artifacts and should be rebuilt after shipped code changes.
 - Use Rspack for bundling. Do not reintroduce Webpack unless there is an explicit, justified need.

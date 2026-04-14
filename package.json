@@ -28,8 +28,5 @@
         "svg-inline-loader": "^0.8.2",
         "ts-loader": "^9.5.7",
         "typescript": "^6.0.2"
-    },
-    "engines": {
-        "node": "^20.19.0 || >=22.12.0"
     }
 }

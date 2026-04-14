@@ -91,15 +91,13 @@ To get started, follow these steps:
 
 1. Clone the GitHub repository to your local machine
 
-2. Use Node `22.22.2` (or any version supported by `.nvmrc` / `package.json` engines)
+2. Run `npm ci` to install the required dependencies
 
-3. Run `npm ci` to install the required dependencies
+3. Introduce your desired changes
 
-4. Introduce your desired changes
+4. Run `npm run lint`, `npm run format:check`, and `npm run build`
 
-5. Run `npm run lint`, `npm run format:check`, and `npm run build`
-
-6. Submit a PR for review
+5. Submit a PR for review
 
 ## Notes 📔
 
