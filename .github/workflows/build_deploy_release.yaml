@@ -4,12 +4,6 @@ on:
         branches:
             - master
     workflow_dispatch:
-        inputs:
-            create_release:
-                description: 'Create a GitHub release with the built public bundle'
-                required: false
-                type: boolean
-                default: false
 
 concurrency:
     group: 'pages-${{ github.ref }}'
@@ -51,31 +45,16 @@ jobs:
               with:
                   path: './public'
 
-    deploy:
+    publish:
         needs: build
         runs-on: ubuntu-latest
         permissions:
             pages: write
             id-token: write
+            contents: write
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
-
-        steps:
-            # DEPLOY
-            - name: Setup Pages
-              uses: actions/configure-pages@v6.0.0
-
-            - name: Deploy to GitHub Pages
-              id: deployment
-              uses: actions/deploy-pages@v5.0.0
-
-    release:
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
-        needs: build
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
 
         steps:
             - uses: actions/checkout@v6.0.2
@@ -91,6 +70,14 @@ jobs:
 
             - name: Build
               run: npm run build
+
+            # DEPLOY
+            - name: Setup Pages
+              uses: actions/configure-pages@v6.0.0
+
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v5.0.0
 
             # RELEASE
             - name: Compress public directory
