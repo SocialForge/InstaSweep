@@ -3,7 +3,7 @@
 ## Repo Rules
 
 - Keep both delivery modes working: the hosted copy/paste script and the Chromium extension.
-- Treat `src/` as the source of truth. `public/dist.js` and `public/background.js` are generated artifacts and should be rebuilt after shipped code changes.
+- Treat `src/` as the source of truth. `public/dist.js` and `public/background.js` are generated build outputs, should not be committed, and should be produced locally when needed or in CI for Pages/releases.
 - Use Rspack for bundling. Do not reintroduce Webpack unless there is an explicit, justified need.
 - Use Oxlint for linting and Oxfmt for formatting. Do not add ESLint or Prettier back without a clear migration decision.
 - SCSS should use `@use`, not deprecated `@import`.

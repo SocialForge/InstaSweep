@@ -93,11 +93,13 @@ To get started, follow these steps:
 
 2. Run `npm ci` to install the required dependencies
 
-3. Introduce your desired changes
+3. Run `npm run build` whenever you need fresh files in `public/` for local testing or loading the unpacked extension. The generated bundles are not committed.
 
-4. Run `npm run lint`, `npm run format:check`, and `npm run build`
+4. Introduce your desired changes
 
-5. Submit a PR for review
+5. Run `npm run lint`, `npm run format:check`, and `npm run build`
+
+6. Submit a PR for review
 
 ## Notes 📔
 
