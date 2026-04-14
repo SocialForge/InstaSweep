@@ -713,7 +713,9 @@ export function Scanning({
             <section className='flex'>
                 <aside className='app-sidebar'>
                     {state.scanErrorMessage !== null && (
-                        <div className='scan-error clr-error p-medium'>{state.scanErrorMessage}</div>
+                        <div className='scan-error clr-error p-medium'>
+                            {state.scanErrorMessage}
+                        </div>
                     )}
                     <menu className='flex column m-clear p-clear'>
                         <p>Filter</p>

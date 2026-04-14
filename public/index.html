@@ -120,6 +120,7 @@
             0% {
                 box-shadow: 0 0 0 0px rgba(255, 255, 255, 0.2);
             }
+
             100% {
                 box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
             }
@@ -186,9 +187,7 @@
         async function getScript() {
             const response = await fetch(RAW_SCRIPT_URL);
             if (!response.ok) {
-                throw new Error(
-                    `Failed to load script: ${response.status} ${response.statusText}`,
-                );
+                throw new Error(`Failed to load script: ${response.status} ${response.statusText}`);
             }
 
             return await response.text();
