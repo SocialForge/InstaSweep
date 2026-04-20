@@ -86,8 +86,10 @@ jobs:
             - name: Get release metadata
               id: release_metadata
               run: |
-                  echo "datetime=$(date '+%Y.%m.%d_%H%M')" >> "$GITHUB_OUTPUT"
-                  echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+                  datetime=$(date '+%Y.%m.%d_%H%M')
+                  version=$(node -p 'require("./package.json").version')
+                  echo "datetime=$datetime" >> "$GITHUB_OUTPUT"
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
 
             - name: Create Release
               uses: softprops/action-gh-release@v3.0.0
