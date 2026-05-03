@@ -15,12 +15,13 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v6.0.2
+            - uses: actions/checkout@v6
 
             # BUILD
             - name: Use node
-              uses: actions/setup-node@v6.3.0
+              uses: actions/setup-node@v6
               with:
+                  node-version: '22'
                   cache: 'npm'
 
             - name: Install dependencies
@@ -39,7 +40,7 @@ jobs:
               run: npm run build
 
             - name: Upload artifact
-              uses: actions/upload-pages-artifact@v5.0.0
+              uses: actions/upload-pages-artifact@v5
               with:
                   path: './public'
 
@@ -55,12 +56,13 @@ jobs:
             url: ${{ steps.deployment.outputs.page_url }}
 
         steps:
-            - uses: actions/checkout@v6.0.2
+            - uses: actions/checkout@v6
 
             # BUILD
             - name: Use node
-              uses: actions/setup-node@v6.3.0
+              uses: actions/setup-node@v6
               with:
+                  node-version: '22'
                   cache: 'npm'
 
             - name: Install dependencies
