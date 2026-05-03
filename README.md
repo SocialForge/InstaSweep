@@ -97,7 +97,7 @@ To get started, follow these steps:
 
 4. Introduce your desired changes
 
-5. Run `npm run lint`, `npm run format:check`, and `npm run build`
+5. Run `npm run lint`, and `npm run build`
 
 6. Submit a PR for review
 

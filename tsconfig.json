@@ -10,7 +10,6 @@
         "allowUnreachableCode": false,
         "forceConsistentCasingInFileNames": true,
         "removeComments": false,
-        "esModuleInterop": true,
         "types": ["chrome-types"],
         "sourceMap": false,
         "module": "ESNext",

@@ -9,6 +9,6 @@
 - SCSS should use `@use`, not deprecated `@import`.
 - Preserve the existing Preact setup unless the change is an intentional framework migration.
 - Keep `package.json` and `public/manifest.json` versions aligned when preparing releases.
-- Validate code changes with `npm run format:check`, `npm run lint`, `npm run typecheck`, and `npm run build`.
+- Validate code changes with `npm run lint`, and `npm run build`.
 - Keep commits scoped to one responsibility. Prefer multiple standalone commits over a single mixed commit.
 - Firefox extension support is still a planning item. Do not implement it implicitly while touching Chrome extension code.

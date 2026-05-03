@@ -4,29 +4,29 @@
     "private": true,
     "scripts": {
         "build": "rspack build --mode production",
-        "format": "oxfmt --write .",
-        "format:check": "oxfmt --check .",
-        "lint": "oxlint .",
-        "lint:fix": "oxlint --fix .",
-        "typecheck": "tsc --noEmit",
+        "lint": "npm run typescript && npm run oxlint && npm run oxfmt",
+        "oxfmt": "oxfmt --check .",
+        "oxfmt-fix": "oxfmt --write .",
+        "oxlint": "oxlint .",
+        "oxlint-fix": "oxlint --fix .",
+        "typescript": "tsc --noEmit",
         "watch": "rspack build --mode development --watch"
     },
     "dependencies": {
         "preact": "^10.29.1"
     },
     "devDependencies": {
-        "@rspack/cli": "^1.7.11",
-        "@rspack/core": "^1.7.11",
+        "@rspack/cli": "^2.0.1",
+        "@rspack/core": "^2.0.1",
         "chrome-types": "^0.1.425",
         "css-loader": "^7.1.4",
-        "oxfmt": "^0.45.0",
-        "oxlint": "^1.60.0",
-        "oxlint-tsgolint": "^0.20.0",
+        "oxfmt": "^0.47.0",
+        "oxlint": "^1.62.0",
         "sass": "^1.99.0",
         "sass-loader": "^16.0.7",
         "style-loader": "^4.0.0",
         "svg-inline-loader": "^0.8.2",
         "ts-loader": "^9.5.7",
-        "typescript": "^6.0.2"
+        "typescript": "^6.0.3"
     }
 }
