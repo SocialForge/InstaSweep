@@ -174,25 +174,23 @@ export function Scanning({
 }: {
     readonly onUnfollow: (usersToUnfollow: readonly Node[]) => void;
 }) {
-    const [state, setState] = useState<State>(() => {
-        return {
-            page: 1,
-            currentTab: 'non_whitelisted',
-            percentage: 0,
-            results: [],
-            scanErrorMessage: null,
-            selectedResults: [],
-            whitelistedResults: loadWhitelistedResults(),
-            searchBar: {
-                shown: false,
-            },
-            filter: {
-                showNonFollowers: true,
-                showFollowers: false,
-                showVerified: true,
-                showPrivate: true,
-            },
-        };
+    const [state, setState] = useState<State>({
+        page: 1,
+        currentTab: 'non_whitelisted',
+        percentage: 0,
+        results: [],
+        scanErrorMessage: null,
+        selectedResults: [],
+        whitelistedResults: loadWhitelistedResults(),
+        searchBar: {
+            shown: false,
+        },
+        filter: {
+            showNonFollowers: true,
+            showFollowers: false,
+            showVerified: true,
+            showPrivate: true,
+        },
     });
 
     const instagramService = useMemo(() => new InstagramService(), []);
