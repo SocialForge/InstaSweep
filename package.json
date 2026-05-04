@@ -4,12 +4,12 @@
     "private": true,
     "scripts": {
         "build": "rspack build --mode production",
-        "lint": "npm run typescript && npm run oxlint && npm run oxfmt",
+        "lint": "npm run typecheck && npm run oxlint && npm run oxfmt",
         "oxfmt": "oxfmt --check .",
         "oxfmt-fix": "oxfmt --write .",
         "oxlint": "oxlint .",
         "oxlint-fix": "oxlint --fix .",
-        "typescript": "tsc --noEmit",
+        "typecheck": "tsc --noEmit",
         "watch": "rspack build --mode development --watch"
     },
     "dependencies": {
