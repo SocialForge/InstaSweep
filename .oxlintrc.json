@@ -1,6 +1,14 @@
 {
     "$schema": "./node_modules/oxlint/configuration_schema.json",
-    "plugins": ["oxc", "unicorn", "typescript", "react", "import", "jsx-a11y", "promise"],
+    "plugins": [
+        "oxc",
+        "unicorn",
+        "typescript",
+        "react",
+        "import",
+        "jsx-a11y",
+        "promise"
+    ],
     "categories": {
         "correctness": "error",
         "suspicious": "error",
@@ -15,7 +23,11 @@
         "es2024": true,
         "webextensions": true
     },
-    "ignorePatterns": ["node_modules", "public/background.js", "public/dist.js"],
+    "ignorePatterns": [
+        "node_modules",
+        "public/background.js",
+        "public/dist.js"
+    ],
     "options": {
         "denyWarnings": true,
         "reportUnusedDisableDirectives": "error",
@@ -28,7 +40,9 @@
     },
     "overrides": [
         {
-            "files": ["rspack.config.js"],
+            "files": [
+                "rspack.config.js"
+            ],
             "env": {
                 "node": true
             },
@@ -54,6 +68,9 @@
         "jsx-a11y/prefer-tag-over-role": "off",
         "react/jsx-max-depth": "off",
         "react/react-in-jsx-scope": "off",
+        "react/exhaustive-effect-dependencies": "off",
+        "react/preserve-manual-memoization": "off",
+        "react/set-state-in-effect": "off",
         "unicorn/filename-case": "off",
         "unicorn/no-array-sort": "off"
     }
