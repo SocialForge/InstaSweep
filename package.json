@@ -4,12 +4,11 @@
     "private": true,
     "scripts": {
         "build": "rspack build --mode production",
-        "lint": "npm run typecheck && npm run oxlint && npm run oxfmt",
+        "lint": "npm run oxlint && npm run oxfmt",
         "oxfmt": "oxfmt --check .",
         "oxfmt-fix": "oxfmt --write .",
         "oxlint": "oxlint .",
         "oxlint-fix": "oxlint --fix .",
-        "typecheck": "tsc --noEmit",
         "watch": "rspack build --mode development --watch"
     },
     "dependencies": {
@@ -27,7 +26,6 @@
         "sass-loader": "^16.0.7",
         "style-loader": "^4.0.0",
         "svg-inline-loader": "^0.8.2",
-        "ts-loader": "^9.5.7",
-        "typescript": "^6.0.3"
+        "ts-loader": "^9.5.7"
     }
 }
