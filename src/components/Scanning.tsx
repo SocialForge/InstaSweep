@@ -99,11 +99,13 @@ function getCurrentPageUnfollowers(
     return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
 }
 
-function getScanProgressPercentage(processedUsersCount: number, totalUsersCount: number): number {
-    if (totalUsersCount <= 0) {
-        return SCAN_PROGRESS_COMPLETE;
+function getScanProgressPercentage(
+    processedUsersCount: number,
+    totalUsersCount: number | null,
+): number {
+    if (totalUsersCount === null || totalUsersCount <= 0) {
+        return 0;
     }
-
     return Math.floor((processedUsersCount / totalUsersCount) * SCAN_PROGRESS_COMPLETE);
 }
 
@@ -111,7 +113,6 @@ function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         return error.message;
     }
-
     return 'Unexpected error';
 }
 
@@ -235,7 +236,7 @@ export function Scanning({
             let scrollCycle = 0;
             let hasNext = true;
             let currentFollowedUsersCount = 0;
-            let totalFollowedUsersCount = -1;
+            let totalFollowedUsersCount: number | null = null;
 
             while (hasNext) {
                 if (isCancelled) {
@@ -270,7 +271,7 @@ export function Scanning({
 
                 consecutiveFailures = 0;
 
-                if (totalFollowedUsersCount === -1) {
+                if (totalFollowedUsersCount === null) {
                     totalFollowedUsersCount = receivedData.count;
                 }
 
@@ -301,6 +302,13 @@ export function Scanning({
                     toast.info('Sleeping 10 secs to prevent getting temp blocked', timeout);
                     await sleep(timeout);
                 }
+            }
+
+            if (!isCancelled) {
+                setState(prevState => ({
+                    ...prevState,
+                    percentage: SCAN_PROGRESS_COMPLETE,
+                }));
             }
         };
         void scan();
@@ -704,17 +712,13 @@ export function Scanning({
                     {isAllUsersSelected() ? <CheckSquareIcon size={2} /> : <SquareIcon size={2} />}
                 </button>
             </AppHeader>
+
             {isActiveProcess && (
                 <progress className='progressbar' value={state.percentage} max='100' />
             )}
 
             <section className='flex'>
                 <aside className='app-sidebar'>
-                    {state.scanErrorMessage !== null && (
-                        <div className='scan-error clr-error p-medium'>
-                            {state.scanErrorMessage}
-                        </div>
-                    )}
                     <menu className='flex column m-clear p-clear'>
                         <p>Filter</p>
                         <button
@@ -800,6 +804,7 @@ export function Scanning({
                         UNFOLLOW ({state.selectedResults.length})
                     </button>
                 </aside>
+
                 <article className='results-container'>
                     <nav className='tabs-container'>
                         <button
@@ -819,6 +824,11 @@ export function Scanning({
                             Whitelisted
                         </button>
                     </nav>
+
+                    {state.scanErrorMessage !== null && (
+                        <div className='scan-error'>{state.scanErrorMessage}</div>
+                    )}
+
                     {pagedUsers.map((user, index) => {
                         const firstLetter = user.username.slice(0, 1).toUpperCase();
                         const previousUser = pagedUsers[index - 1];

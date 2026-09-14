@@ -6,7 +6,9 @@
         background: rgb(84 20 20 / 35%);
         border: 1px solid $clr-error;
         border-radius: 8px;
-        margin: $size-medium 0;
+        @extend .clr-error;
+        @extend .m-medium;
+        @extend .p-medium;
     }
 
     .results-container {
