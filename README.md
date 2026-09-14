@@ -105,10 +105,6 @@ To get started, follow these steps:
 
 - **_The more users you have to check, the more time it will take_**
 
-- **_The script has been tested only on Chromium-based browsers_**
-
-- **_The script is actively supported only on Chromium-based browsers_**
-
 ## Legal ⚖️
 
 **Disclaimer:** This is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Instagram.
