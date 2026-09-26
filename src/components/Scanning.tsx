@@ -36,7 +36,7 @@ interface State {
     readonly page: number;
     readonly currentTab: Tab;
     readonly searchBar: SearchBar;
-    readonly percentage: number;
+    readonly percentage: number | null;
     readonly results: readonly Node[];
     readonly scanErrorMessage: string | null;
     readonly whitelistedResults: readonly Node[];
@@ -102,9 +102,9 @@ function getCurrentPageUnfollowers(
 function getScanProgressPercentage(
     processedUsersCount: number,
     totalUsersCount: number | null,
-): number {
+): number | null {
     if (totalUsersCount === null || totalUsersCount <= 0) {
-        return 0;
+        return null;
     }
     return Math.floor((processedUsersCount / totalUsersCount) * SCAN_PROGRESS_COMPLETE);
 }
@@ -178,7 +178,7 @@ export function Scanning({
     const [state, setState] = useState<State>({
         page: 1,
         currentTab: 'non_whitelisted',
-        percentage: 0,
+        percentage: null,
         results: [],
         scanErrorMessage: null,
         selectedResults: [],
@@ -206,7 +206,7 @@ export function Scanning({
         state.filter,
     );
 
-    const isActiveProcess = state.percentage < SCAN_PROGRESS_COMPLETE;
+    const isActiveProcess = state.percentage !== SCAN_PROGRESS_COMPLETE;
     useOnBeforeUnload(isActiveProcess);
 
     const pagedUsers = getCurrentPageUnfollowers(usersForDisplay, state.page);
@@ -714,7 +714,11 @@ export function Scanning({
             </AppHeader>
 
             {isActiveProcess && (
-                <progress className='progressbar' value={state.percentage} max='100' />
+                <progress
+                    className='progressbar'
+                    value={state.percentage === null ? undefined : state.percentage}
+                    max='100'
+                />
             )}
 
             <section className='flex'>
