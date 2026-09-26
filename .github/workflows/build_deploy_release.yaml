@@ -11,35 +11,7 @@ permissions:
     contents: read
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-
-        steps:
-            - uses: actions/checkout@v6
-
-            # BUILD
-            - name: Use node
-              uses: actions/setup-node@v6
-              with:
-                  node-version: '22'
-                  cache: 'npm'
-
-            - name: Install dependencies
-              run: npm ci
-
-            - name: Lint
-              run: npm run lint
-
-            - name: Build
-              run: npm run build
-
-            - name: Upload artifact
-              uses: actions/upload-pages-artifact@v5
-              with:
-                  path: './public'
-
-    publish:
-        needs: build
+    deploy:
         runs-on: ubuntu-latest
         permissions:
             pages: write
@@ -62,18 +34,12 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
+            - name: Lint
+              run: npm run lint
+
             - name: Build
               run: npm run build
 
-            # DEPLOY
-            - name: Setup Pages
-              uses: actions/configure-pages@v6.0.0
-
-            - name: Deploy to GitHub Pages
-              id: deployment
-              uses: actions/deploy-pages@v5.0.0
-
-            # RELEASE
             - name: Compress public directory
               run: zip -r InstaSweep.zip public/
 
@@ -85,8 +51,22 @@ jobs:
                   echo "datetime=$datetime" >> "$GITHUB_OUTPUT"
                   echo "version=$version" >> "$GITHUB_OUTPUT"
 
+            - name: Upload Pages artifact
+              uses: actions/upload-pages-artifact@v5.0.0
+              with:
+                  path: './public'
+
+            # DEPLOY
+            - name: Setup Pages
+              uses: actions/configure-pages@v6.0.0
+
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v5.0.1
+
+            # RELEASE
             - name: Create Release
-              uses: softprops/action-gh-release@v3.0.0
+              uses: softprops/action-gh-release@v3.0.3
               with:
                   files: InstaSweep.zip
                   tag_name: v${{ steps.release_metadata.outputs.version }}-${{ steps.release_metadata.outputs.datetime }}
