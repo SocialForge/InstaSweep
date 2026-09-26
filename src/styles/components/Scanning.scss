@@ -3,7 +3,7 @@
 
 .scanning {
     .scan-error {
-        background: rgb(84 20 20 / 35%);
+        background: #54141459;
         border: 1px solid $clr-error;
         border-radius: 8px;
         @extend .clr-error;
@@ -36,6 +36,10 @@
             padding: 0;
             text-align: initial;
             @extend .w-100;
+
+            &:hover {
+                background: #121212;
+            }
 
             .avatar-container {
                 position: relative;
