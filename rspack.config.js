@@ -1,4 +1,5 @@
 const path = require('node:path');
+const { SwcJsMinimizerRspackPlugin } = require('@rspack/core');
 
 module.exports = {
     entry: {
@@ -31,5 +32,25 @@ module.exports = {
     output: {
         filename: '[name].js',
         path: path.resolve(__dirname, 'public'),
+    },
+    optimization: {
+        minimize: true,
+        minimizer: [
+            new SwcJsMinimizerRspackPlugin({
+                minimizerOptions: {
+                    compress: {
+                        passes: 3,
+                        toplevel: true,
+                        drop_debugger: true,
+                    },
+                    mangle: {
+                        toplevel: true,
+                    },
+                    format: {
+                        comments: false,
+                    },
+                },
+            }),
+        ],
     },
 };
