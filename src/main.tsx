@@ -1,4 +1,5 @@
 import React, { type ReactNode, useState, render } from 'react';
+// oxlint-disable-next-line import/no-unassigned-import
 import './styles.scss';
 
 import { assertUnreachable } from './common/utils';

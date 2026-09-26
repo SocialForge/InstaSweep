@@ -537,7 +537,7 @@ export function Scanning({
                 }
 
                 default: {
-                    assertUnreachable(prev.currentTab);
+                    return assertUnreachable(prev.currentTab);
                 }
             }
         });
@@ -577,7 +577,7 @@ export function Scanning({
                 }
 
                 default: {
-                    assertUnreachable(prev.currentTab);
+                    return assertUnreachable(prev.currentTab);
                 }
             }
         });
@@ -639,7 +639,6 @@ export function Scanning({
         changePage,
         toggleAllUsers,
         toggleSearchBar,
-        state.selectedResults,
         state.searchBar.shown,
         state.currentTab,
         changeTab,
@@ -857,10 +856,9 @@ export function Scanning({
                                         {firstLetter}
                                     </button>
                                 )}
-                                <div
+                                <button
                                     aria-pressed={isUserSelected(user)}
                                     className={`result-item ${isUserSelected(user) ? 'bg-brand' : ''}`}
-                                    role='button'
                                     tabIndex={0}
                                     onClick={() => toggleUser(user)}
                                     onKeyDown={event => {
@@ -958,7 +956,7 @@ export function Scanning({
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </button>
                             </React.Fragment>
                         );
                     })}
