@@ -1,87 +1,24 @@
-import { type Node, type User } from '../model/user';
-
-interface UserListResponse {
-    readonly users: readonly unknown[];
-    readonly next_max_id?: string | null;
-    readonly user_count?: number;
-}
-
-interface FollowingResponse extends UserListResponse {
-    readonly users: readonly FollowingUser[];
-}
-
-interface FollowingUser {
-    readonly pk: string;
+export interface User {
+    readonly id: string;
     readonly username: string;
     readonly full_name: string;
     readonly profile_pic_url: string;
     readonly is_private: boolean;
     readonly is_verified: boolean;
+    // TODO: shouldn't be part of this interface.
+    // Added/computed manually.
+    readonly followed_by_viewer: boolean;
+    readonly follows_viewer: boolean;
+}
+
+export interface UserListResponse {
+    readonly users: readonly User[];
+    readonly next_max_id?: string | null;
+    readonly user_count?: number;
 }
 
 const INSTAGRAM_APP_ID = '936619743392459';
 const FOLLOWING_PAGE_SIZE = 50;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null;
-}
-
-function isFollowingUser(value: unknown): value is FollowingUser {
-    if (!isRecord(value)) {
-        return false;
-    }
-
-    return (
-        typeof value.pk === 'string' &&
-        typeof value.username === 'string' &&
-        typeof value.full_name === 'string' &&
-        typeof value.profile_pic_url === 'string' &&
-        typeof value.is_private === 'boolean' &&
-        typeof value.is_verified === 'boolean'
-    );
-}
-
-function isUserListResponse(value: unknown): value is UserListResponse {
-    if (!isRecord(value) || !Array.isArray(value.users)) {
-        return false;
-    }
-
-    if (
-        value.next_max_id !== undefined &&
-        value.next_max_id !== null &&
-        typeof value.next_max_id !== 'string'
-    ) {
-        return false;
-    }
-
-    if (value.user_count !== undefined && typeof value.user_count !== 'number') {
-        return false;
-    }
-
-    return true;
-}
-
-function isFollowingResponse(value: UserListResponse): value is FollowingResponse {
-    return value.users.every(isFollowingUser);
-}
-
-function isUserWithId(value: unknown): value is { readonly pk: string } {
-    return isRecord(value) && typeof value.pk === 'string';
-}
-
-function toNode(user: FollowingUser, followerIds: ReadonlySet<string>): Node {
-    return {
-        id: user.pk,
-        username: user.username,
-        full_name: user.full_name,
-        profile_pic_url: user.profile_pic_url,
-        is_private: user.is_private,
-        is_verified: user.is_verified,
-        followed_by_viewer: true,
-        follows_viewer: followerIds.has(user.pk),
-        requested_by_viewer: false,
-    };
-}
 
 function getResponseErrorMessage(action: string, response: Response): string {
     const statusText = response.statusText === '' ? 'Request failed' : response.statusText;
@@ -155,16 +92,12 @@ export class InstagramService {
                 'x-requested-with': 'XMLHttpRequest',
             },
         });
+
         if (!response.ok) {
             throw new Error(getResponseErrorMessage(`${relationship} scan request`, response));
         }
 
-        const result: unknown = await response.json();
-        if (!isUserListResponse(result)) {
-            throw new Error(`Unexpected Instagram ${relationship} response payload`);
-        }
-
-        return result;
+        return await response.json();
     }
 
     private async getFollowerIds(): Promise<ReadonlySet<string>> {
@@ -174,10 +107,7 @@ export class InstagramService {
         do {
             const response = await this.getUserList('followers', nextCursor);
             for (const user of response.users) {
-                if (!isUserWithId(user)) {
-                    throw new Error('Unexpected Instagram followers user payload');
-                }
-                followerIds.add(user.pk);
+                followerIds.add(user.id);
             }
             nextCursor = response.next_max_id ?? undefined;
         } while (nextCursor !== undefined);
@@ -185,7 +115,7 @@ export class InstagramService {
         return followerIds;
     }
 
-    async getNextUser(): Promise<User> {
+    async getNextUser(): Promise<UserListResponse> {
         if (this.followerIdsPromise === undefined) {
             this.followerIdsPromise = this.getFollowerIds();
         }
@@ -193,18 +123,19 @@ export class InstagramService {
             this.followerIdsPromise,
             this.getUserList('following', this.nextCursor),
         ]);
-        if (!isFollowingResponse(result)) {
-            throw new Error('Unexpected Instagram following response payload');
-        }
         this.nextCursor = result.next_max_id ?? undefined;
         return {
-            count: result.user_count ?? null,
-            page_info: {
-                has_next_page: result.next_max_id !== null && result.next_max_id !== undefined,
-                end_cursor: result.next_max_id ?? '',
-            },
-            edges: result.users.map(user => ({
-                node: toNode(user, followerIds),
+            user_count: result.user_count,
+            next_max_id: result.next_max_id,
+            users: result.users.map(user => ({
+                id: user.id,
+                username: user.username,
+                full_name: user.full_name,
+                profile_pic_url: user.profile_pic_url,
+                is_private: user.is_private,
+                is_verified: user.is_verified,
+                followed_by_viewer: true,
+                follows_viewer: followerIds.has(user.id),
             })),
         };
     }

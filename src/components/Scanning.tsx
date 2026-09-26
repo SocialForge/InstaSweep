@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppHeader } from './AppHeader';
 import { assertUnreachable, sleep } from '../common/utils';
 import { toast } from '../common/toast';
-import type { Node, User } from '../model/user';
+import type { User } from '../common/services';
 import { CopyIcon } from '../common/icons/CopyIcon';
 import { SearchIcon } from '../common/icons/SearchIcon';
 import { CheckSquareIcon } from '../common/icons/CheckSquareIcon';
@@ -12,7 +12,7 @@ import { UserCheckIcon } from '../common/icons/UserCheckIcon';
 import { UserUncheckIcon } from '../common/icons/UserUncheckIcon';
 import { useOnBeforeUnload } from '../common/hooks';
 import { LockIcon } from '../common/icons/LockIcon';
-import { InstagramService } from '../common/services';
+import { InstagramService, UserListResponse } from '../common/services';
 
 type Tab = 'non_whitelisted' | 'whitelisted';
 
@@ -37,10 +37,10 @@ interface State {
     readonly currentTab: Tab;
     readonly searchBar: SearchBar;
     readonly percentage: number | null;
-    readonly results: readonly Node[];
+    readonly results: readonly User[];
     readonly scanErrorMessage: string | null;
-    readonly whitelistedResults: readonly Node[];
-    readonly selectedResults: readonly Node[];
+    readonly whitelistedResults: readonly User[];
+    readonly selectedResults: readonly User[];
     readonly filter: Filter;
 }
 
@@ -50,9 +50,9 @@ const SCAN_FAILURE_RETRY_LIMIT = 3;
 const SCAN_PROGRESS_COMPLETE = 100;
 const WHITELISTED_RESULTS_STORAGE_KEY = 'insta-sweep_whitelisted-results';
 
-function dedupeUsersById(users: readonly Node[]): readonly Node[] {
+function dedupeUsersById(users: readonly User[]): readonly User[] {
     const seenUserIds = new Set<string>();
-    const dedupedUsers: Node[] = [];
+    const dedupedUsers: User[] = [];
 
     for (const user of users) {
         if (seenUserIds.has(user.id)) {
@@ -66,7 +66,7 @@ function dedupeUsersById(users: readonly Node[]): readonly Node[] {
     return dedupedUsers;
 }
 
-function loadWhitelistedResults(): readonly Node[] {
+function loadWhitelistedResults(): readonly User[] {
     const whitelistedResultsFromStorage = localStorage.getItem(WHITELISTED_RESULTS_STORAGE_KEY);
     if (whitelistedResultsFromStorage === null) {
         return [];
@@ -78,7 +78,7 @@ function loadWhitelistedResults(): readonly Node[] {
             return [];
         }
 
-        return dedupeUsersById(parsedWhitelistedResults as readonly Node[]);
+        return dedupeUsersById(parsedWhitelistedResults as readonly User[]);
     } catch (error) {
         console.error(error);
         localStorage.removeItem(WHITELISTED_RESULTS_STORAGE_KEY);
@@ -86,15 +86,15 @@ function loadWhitelistedResults(): readonly Node[] {
     }
 }
 
-function getMaxPage(nonFollowersList: readonly Node[]): number {
+function getMaxPage(nonFollowersList: readonly User[]): number {
     const pageCalc = Math.ceil(nonFollowersList.length / UNFOLLOWERS_PER_PAGE);
     return Math.max(1, pageCalc);
 }
 
 function getCurrentPageUnfollowers(
-    nonFollowersList: readonly Node[],
+    nonFollowersList: readonly User[],
     currentPage: number,
-): readonly Node[] {
+): readonly User[] {
     const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
     return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
 }
@@ -117,13 +117,13 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getUsersForDisplay(
-    results: readonly Node[],
-    whitelistedResults: readonly Node[],
+    results: readonly User[],
+    whitelistedResults: readonly User[],
     currentTab: Tab,
     search: SearchBar,
     filter: Filter,
-): readonly Node[] {
-    const users: Node[] = [];
+): readonly User[] {
+    const users: User[] = [];
     for (const result of results) {
         const isWhitelisted = whitelistedResults.some(user => user.id === result.id);
         switch (currentTab) {
@@ -173,7 +173,7 @@ function getUsersForDisplay(
 export function Scanning({
     onUnfollow,
 }: {
-    readonly onUnfollow: (usersToUnfollow: readonly Node[]) => void;
+    readonly onUnfollow: (usersToUnfollow: readonly User[]) => void;
 }) {
     const [state, setState] = useState<State>({
         page: 1,
@@ -231,7 +231,7 @@ export function Scanning({
         let isCancelled = false;
 
         const scan = async () => {
-            const results: Node[] = [];
+            const results: User[] = [];
             let consecutiveFailures = 0;
             let scrollCycle = 0;
             let hasNext = true;
@@ -243,7 +243,7 @@ export function Scanning({
                     return;
                 }
 
-                let receivedData: User;
+                let receivedData: UserListResponse;
                 try {
                     receivedData = await instagramService.getNextUser();
                 } catch (error) {
@@ -272,13 +272,14 @@ export function Scanning({
                 consecutiveFailures = 0;
 
                 if (totalFollowedUsersCount === null) {
-                    totalFollowedUsersCount = receivedData.count;
+                    totalFollowedUsersCount = receivedData.user_count ?? null;
                 }
 
-                hasNext = receivedData.page_info.has_next_page;
-                currentFollowedUsersCount += receivedData.edges.length;
-                for (const edge of receivedData.edges) {
-                    results.push(edge.node);
+                hasNext =
+                    receivedData.next_max_id !== undefined && receivedData.next_max_id !== null;
+                currentFollowedUsersCount += receivedData.users.length;
+                for (const user of receivedData.users) {
+                    results.push(user);
                 }
 
                 setState(prevState => {
@@ -361,9 +362,9 @@ export function Scanning({
         }
     }, [state.selectedResults]);
 
-    const isUserSelected = (user: Node): boolean => state.selectedResults.includes(user);
+    const isUserSelected = (user: User): boolean => state.selectedResults.includes(user);
 
-    const toggleUser = (user: Node) => {
+    const toggleUser = (user: User) => {
         if (isUserSelected(user)) {
             setState({
                 ...state,
@@ -508,7 +509,7 @@ export function Scanning({
         });
     }, []);
 
-    const toggleUserWhitelistStatus = (user: Node) => {
+    const toggleUserWhitelistStatus = (user: User) => {
         setState(prev => {
             switch (prev.currentTab) {
                 case 'non_whitelisted': {

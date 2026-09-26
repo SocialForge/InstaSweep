@@ -3,9 +3,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AppHeader } from './AppHeader';
 import { sleep } from '../common/utils';
 import { toast } from '../common/toast';
-import type { Node } from '../model/user';
 import { useOnBeforeUnload } from '../common/hooks';
-import { InstagramService } from '../common/services';
+import { InstagramService, User } from '../common/services';
 
 interface Filter {
     readonly showSucceeded: boolean;
@@ -14,7 +13,7 @@ interface Filter {
 
 interface LogEntry {
     readonly position: number;
-    readonly user: Node;
+    readonly user: User;
     readonly unfollowedSuccessfully: boolean;
 }
 
@@ -45,7 +44,7 @@ function getLogForDisplay(log: readonly LogEntry[], searchTerm: string, filter: 
     return entries;
 }
 
-export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: readonly Node[] }) {
+export function Unfollowing({ usersToUnfollow }: { readonly usersToUnfollow: readonly User[] }) {
     const [state, setState] = useState<State>({
         searchTerm: '',
         percentage: 0,

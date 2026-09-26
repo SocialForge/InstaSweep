@@ -1,12 +1,11 @@
-import React, { type ReactNode, useState } from 'react';
-import { render } from 'preact';
+import React, { type ReactNode, useState, render } from 'react';
 import './styles.scss';
 
 import { assertUnreachable } from './common/utils';
+import type { User } from './common/services';
 import { Initial } from './components/Initial';
 import { Scanning } from './components/Scanning';
 import { Unfollowing } from './components/Unfollowing';
-import type { Node } from './model/user';
 
 const INSTAGRAM_HOSTNAME = 'www.instagram.com';
 
@@ -15,7 +14,7 @@ type State =
     | { readonly status: 'scanning' }
     | {
           readonly status: 'unfollowing';
-          readonly usersToUnfollow: readonly Node[];
+          readonly usersToUnfollow: readonly User[];
       };
 
 function App() {
